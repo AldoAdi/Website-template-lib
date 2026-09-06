@@ -13,12 +13,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
       include: ['src/**/*.{ts,tsx}'],
-      exclude: [
-        'src/**/*.d.ts',
-        'src/**/index.ts',
-        'src/theme/theme.css',
-        'src/Ping.tsx',
-      ],
+      exclude: ['src/**/*.d.ts', 'src/**/index.ts', 'src/theme/theme.css', 'src/Ping.tsx'],
       thresholds: {
         lines: COVERAGE_THRESHOLD,
         branches: COVERAGE_THRESHOLD,

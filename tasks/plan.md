@@ -134,6 +134,17 @@ TDD, failing test first. This is where the coverage floor is earned.
 
 ---
 
+## Phase 1 findings (2026-09-06)
+
+All three T2 assumptions **held**. Evidence in the Checkpoint A report.
+
+Two things learned that were not in the plan:
+
+1. **Tailwind v4 needs an explicit `@source`.** Confirmed — without `@source '../node_modules/@aldoadi/website-template/src';` in the starter's `globals.css`, no library class name reaches the stylesheet. This is now a required step in `CONSUMING.md` (T15), not an optional note. Missing it produces a green build and a completely unstyled page, which is the worst kind of failure.
+2. **`file:*.tgz` installs are cached by version, not content.** Re-packing the library after a change and running `npm install` reports "up to date" and silently keeps the old copy — a rebuild then verifies stale code. Caught this during T3: the first post-`Ping`-deletion build was still building against a tarball containing `Ping`. During local development, force it: `npm i ./aldoadi-website-template-0.1.0.tgz --force`. Real tag-pinned git installs do not have this problem, since the tag changes.
+
+**Outstanding wart:** the starter's `package.json` currently points at `file:aldoadi-website-template-0.1.0.tgz`, and that tarball sits in the starter directory. Neither should be committed. This gets replaced with the real `github:AldoAdi/Website-template-lib#v0.1.0` reference once a first push is authorized.
+
 ## Definition of Done (every task)
 
 - `npm run verify` passes: typecheck, lint, ≥80% line and branch coverage
