@@ -124,3 +124,25 @@ describe('securityHeaders', () => {
     expect(result.meta.some((t) => t.httpEquiv === 'Strict-Transport-Security')).toBe(false)
   })
 })
+
+describe('style-src', () => {
+  // Regression guard. `style-src 'self'` looks correct against the emitted
+  // HTML -- there are no <style> tags and no style attributes in it -- but
+  // next-themes assigns documentElement.style.colorScheme at runtime, and a
+  // bare 'self' blocks that with "Applying inline style violates the
+  // following Content Security Policy directive". Only a real browser load
+  // surfaces it, so this test pins the exception in place.
+  test("keeps 'unsafe-inline', which next-themes needs to set colorScheme", () => {
+    const csp = getHttpSecurityHeaders().find((h) => h.key === 'Content-Security-Policy')?.value
+    const styleSrc = csp?.split('; ').find((d) => d.startsWith('style-src'))
+
+    expect(styleSrc).toBe("style-src 'self' 'unsafe-inline'")
+  })
+
+  test("the meta shape keeps it too -- GitHub Pages runs the same script", () => {
+    const csp = getMetaSecurityTags()[0]?.content
+    const styleSrc = csp?.split('; ').find((d) => d.startsWith('style-src'))
+
+    expect(styleSrc).toBe("style-src 'self' 'unsafe-inline'")
+  })
+})

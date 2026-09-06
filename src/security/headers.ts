@@ -82,10 +82,12 @@
  *    consuming site adds (this library ships zero images itself, per
  *    SPEC.md); `data:` for small inline icons a consumer might pass
  *    through `next/image`.
- *  - `style-src 'self'` — Tailwind v4 compiles to a linked stylesheet, and
- *    no component in this library sets an inline `style=` attribute
- *    (verified: `grep -rn 'style=' src` finds nothing), so no
- *    `'unsafe-inline'` is needed here.
+ *  - `style-src 'self' 'unsafe-inline'` — Tailwind v4 compiles to a linked
+ *    stylesheet and no component here writes a `style=` attribute, so the
+ *    emitted HTML looks like it needs no exception. It does anyway:
+ *    next-themes assigns `documentElement.style.colorScheme` at runtime,
+ *    which a bare `style-src 'self'` blocks. This was caught by loading the
+ *    built page in a browser; reading the static output cannot reveal it.
  *  - `font-src 'self'` — for a consumer's self-hosted font files, if any.
  *  - `base-uri 'self'` — blocks `<base>`-tag injection from redirecting
  *    every relative URL on the page.
@@ -134,7 +136,19 @@ function buildBaseCspDirectives(): readonly string[] {
     `script-src 'self' 'unsafe-inline' ${GOOGLE_TAG_MANAGER_ORIGIN}`,
     `connect-src 'self' ${GOOGLE_ANALYTICS_ORIGIN} ${GOOGLE_ANALYTICS_WILDCARD} ${WEB3FORMS_ORIGIN}`,
     "img-src 'self' data:",
-    "style-src 'self'",
+    // 'unsafe-inline' is required here for the same structural reason as
+    // script-src, and it was found by loading the built page in a real
+    // browser -- not by reading the emitted HTML, which contains no <style>
+    // tags and no style attributes at all. next-themes' no-flash script
+    // assigns `document.documentElement.style.colorScheme` at runtime, and
+    // a style-src without 'unsafe-inline' blocks that assignment:
+    //   "Applying inline style violates the following Content Security
+    //    Policy directive 'style-src 'self''. The action has been blocked."
+    // A hash cannot cover it (the value is computed per visitor) and a
+    // nonce needs a per-request server, which output: 'export' does not
+    // have. Blocking it would leave the browser's form controls and
+    // scrollbars in the wrong colour scheme in dark mode.
+    "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
     "base-uri 'self'",
     "object-src 'none'",
