@@ -53,9 +53,7 @@ describe('Card', () => {
       />,
     )
 
-    expect(container.querySelectorAll('a, button, [role="link"], [role="button"]')).toHaveLength(
-      1,
-    )
+    expect(container.querySelectorAll('a, button, [role="link"], [role="button"]')).toHaveLength(1)
     const iconWrapper = screen.getByTestId('icon').parentElement
     expect(iconWrapper?.getAttribute('aria-hidden')).toBe('true')
   })
