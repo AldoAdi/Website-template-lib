@@ -15,6 +15,7 @@
     ".": "./src/index.ts",
     "./analytics": "./src/analytics/index.ts",
     "./theme": "./src/theme/index.ts",
+    "./components": "./src/components/index.ts",
     "./seo": "./src/seo/index.ts",
     "./security": "./src/security/index.ts",
     "./config": "./src/config/index.ts",

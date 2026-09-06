@@ -3,3 +3,4 @@
 // Config is reached via the "./config" subpath, not from here — next.config.ts
 // must be able to import it without pulling React into the config graph.
 export * from './theme'
+export * from './components'
