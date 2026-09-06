@@ -5,7 +5,9 @@ import {
   securityHeaders,
 } from '../../src/security/headers'
 
-function findHttpHeader(name: string): { readonly key: string; readonly value: string } | undefined {
+function findHttpHeader(
+  name: string,
+): { readonly key: string; readonly value: string } | undefined {
   return getHttpSecurityHeaders().find((header) => header.key === name)
 }
 
@@ -139,7 +141,7 @@ describe('style-src', () => {
     expect(styleSrc).toBe("style-src 'self' 'unsafe-inline'")
   })
 
-  test("the meta shape keeps it too -- GitHub Pages runs the same script", () => {
+  test('the meta shape keeps it too -- GitHub Pages runs the same script', () => {
     const csp = getMetaSecurityTags()[0]?.content
     const styleSrc = csp?.split('; ').find((d) => d.startsWith('style-src'))
 

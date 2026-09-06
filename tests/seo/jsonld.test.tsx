@@ -116,8 +116,6 @@ describe('JsonLd', () => {
     const script = container.querySelector('script[type="application/ld+json"]')
     expect(script).not.toBeNull()
     expect(script?.innerHTML).not.toContain('</script>')
-    expect(JSON.parse(script?.innerHTML ?? '').name).toBe(
-      '</script><img src=x onerror=alert(1)>',
-    )
+    expect(JSON.parse(script?.innerHTML ?? '').name).toBe('</script><img src=x onerror=alert(1)>')
   })
 })

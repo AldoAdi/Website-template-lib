@@ -75,7 +75,10 @@ describe('buildMetadata', () => {
   test('produces a title template and default title', () => {
     const metadata = buildMetadata(SITE)
 
-    expect(metadata.title).toEqual({ template: '%s | Example Site', default: 'Example Site — Home' })
+    expect(metadata.title).toEqual({
+      template: '%s | Example Site',
+      default: 'Example Site — Home',
+    })
   })
 
   test('respects a custom title template', () => {
@@ -91,15 +94,22 @@ describe('buildMetadata', () => {
   })
 
   test('produces a canonical alternate under the site basePath', () => {
-    const metadata = buildMetadata({ ...SITE, siteUrl: 'https://user.github.io', basePath: '/my-site' }, {
-      path: '/about',
-    })
+    const metadata = buildMetadata(
+      { ...SITE, siteUrl: 'https://user.github.io', basePath: '/my-site' },
+      {
+        path: '/about',
+      },
+    )
 
     expect(metadata.alternates).toEqual({ canonical: 'https://user.github.io/my-site/about' })
   })
 
   test('produces Open Graph fields shaped for a website', () => {
-    const metadata = buildMetadata(SITE, { path: '/about', title: 'About', description: 'About us' })
+    const metadata = buildMetadata(SITE, {
+      path: '/about',
+      title: 'About',
+      description: 'About us',
+    })
 
     expect(metadata.openGraph).toMatchObject({
       type: 'website',

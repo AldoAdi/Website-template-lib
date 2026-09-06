@@ -132,7 +132,12 @@ function buildOpenGraph(input: {
   }
 }
 
-function toOgImage(image: SeoImage): { url: string; width?: number; height?: number; alt?: string } {
+function toOgImage(image: SeoImage): {
+  url: string
+  width?: number
+  height?: number
+  alt?: string
+} {
   return {
     url: image.url,
     ...(image.width === undefined ? {} : { width: image.width }),
@@ -148,7 +153,9 @@ function buildTwitter(input: {
   readonly twitterHandle: string | undefined
 }): TwitterMetadata {
   const handleFields =
-    input.twitterHandle === undefined ? {} : { site: input.twitterHandle, creator: input.twitterHandle }
+    input.twitterHandle === undefined
+      ? {}
+      : { site: input.twitterHandle, creator: input.twitterHandle }
 
   if (input.image === undefined) {
     return { card: 'summary', title: input.title, description: input.description, ...handleFields }
