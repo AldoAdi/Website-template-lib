@@ -162,7 +162,13 @@ Every task also clears the Definition of Done in the plan.
 - [ ] `hasConsent()`, `grantConsent()`, `denyConsent()`, `onConsentChange(cb)` returning an unsubscribe
 - [ ] Persists to `localStorage`; a corrupt or missing value reads as "not granted" and never throws
 - [ ] SSR-safe: no `window` access during render
-- [ ] `CookieBanner` is keyboard-navigable, focus-trapped while open, dismissible, does not block content underneath
+- [ ] `CookieBanner` is keyboard-navigable, non-modal, and does not block content underneath
+      > Revised during T8. The original line also asked for a focus trap, which contradicts
+      > "does not block content underneath" -- a focus trap is precisely what blocks the rest
+      > of the page for keyboard and screen-reader users. A consent banner is not a modal
+      > dialog: it is a `role="region"` landmark the visitor can scroll past and return to.
+      > "Dismissible" is satisfied by making a decision; there is deliberately no dismiss-
+      > without-deciding control, since ignoring the banner must not read as consent.
 - [ ] Denying is as easy as accepting — equal visual weight
 
 **Verify:** `npx vitest run tests/analytics/consent` — written failing first · axe on the banner · manual: clear storage, reload, zero GA requests in Network tab
