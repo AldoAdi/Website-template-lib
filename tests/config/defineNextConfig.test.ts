@@ -31,4 +31,25 @@ describe('defineNextConfig', () => {
     expect(config.images?.unoptimized).toBe(true)
     expect(config.trailingSlash).toBe(true)
   })
+
+  test('carries real HTTP security headers for the vercel target', async () => {
+    const config = defineNextConfig({ target: 'vercel' })
+
+    expect(config.headers).toBeTypeOf('function')
+    const headerEntries = await config.headers?.()
+    const cspHeader = headerEntries
+      ?.flatMap((entry) => entry.headers)
+      .find((header) => header.key === 'Content-Security-Policy')
+
+    expect(headerEntries?.[0]?.source).toBe('/:path*')
+    expect(cspHeader?.value).toContain("default-src 'self'")
+  })
+
+  test('does not carry an HTTP headers() function for the github-pages target', () => {
+    // A static export has no server to run headers() against -- Next
+    // would silently ignore it, so `defineNextConfig` must not emit one.
+    const config = defineNextConfig({ target: 'github-pages', repoName: 'my-site' })
+
+    expect(config.headers).toBeUndefined()
+  })
 })

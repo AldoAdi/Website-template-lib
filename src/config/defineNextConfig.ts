@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import { getHttpSecurityHeaders } from '../security/headers'
 
 export type DeployTarget = 'vercel' | 'github-pages'
 
@@ -25,8 +26,25 @@ export function defineNextConfig(options: DefineNextConfigOptions): NextConfig {
   return buildVercelConfig()
 }
 
+const ALL_ROUTES_SOURCE = '/:path*'
+
+/**
+ * Vercel is a Node server (SSR/ISR), so it can actually send HTTP response
+ * headers -- unlike the GitHub Pages static export, which has no server to
+ * attach them to and falls back to a much weaker `<meta http-equiv>` CSP
+ * (see `src/security/headers.ts`). Wiring `headers()` here is therefore
+ * deliberately Vercel-only.
+ */
 function buildVercelConfig(): NextConfig {
-  return {}
+  return {
+    headers: () =>
+      Promise.resolve([
+        {
+          source: ALL_ROUTES_SOURCE,
+          headers: getHttpSecurityHeaders().map(({ key, value }) => ({ key, value })),
+        },
+      ]),
+  }
 }
 
 function buildGithubPagesConfig(repoName: string | undefined): NextConfig {

@@ -278,7 +278,16 @@ Every task also clears the Definition of Done in the plan.
 ---
 
 ### ✅ Checkpoint E — SEO + Security
-- [ ] securityheaders.com grade A on Vercel
+
+> **Deferred (decided 2026-09-06): no Vercel deploy for now.** The site ships to
+> GitHub Pages only, which serves static files and cannot send real HTTP response
+> headers. That means no HSTS, no `frame-ancestors` (a meta-tag CSP ignores it),
+> and no securityheaders.com grade to measure. `securityHeaders()` still produces
+> both shapes and both are unit-tested; only the *deployed* header grade is
+> unverifiable. Checkpoint E therefore passes on the reduced bar below, and the
+> Vercel row stays unchecked rather than being quietly rewritten as passed.
+
+- [ ] ~~securityheaders.com grade A on Vercel~~ — deferred, no Vercel deploy
 - [ ] Rich Results passes
 - [ ] Sitemap and robots present in static output
 - [ ] No console CSP violations

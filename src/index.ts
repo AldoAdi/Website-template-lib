@@ -1,6 +1,7 @@
 // Public barrel export for @aldoadi/website-template.
-// Populated as modules land (theme, analytics, seo, security, components).
-// Config is reached via the "./config" subpath, not from here — next.config.ts
-// must be able to import it without pulling React into the config graph.
+// Config, analytics, security and seo are reached via their own subpaths —
+// next.config.ts must be able to import config without pulling React into
+// the config graph, and a site should not pay for analytics just by
+// importing a button.
 export * from './theme'
 export * from './components'
