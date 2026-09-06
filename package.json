@@ -1,0 +1,64 @@
+{
+  "name": "@aldoadi/website-template",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "description": "Shared Next.js component and utility library for marketing/content sites.",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "files": [
+    "src"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./analytics": "./src/analytics/index.ts",
+    "./theme": "./src/theme/index.ts",
+    "./seo": "./src/seo/index.ts",
+    "./security": "./src/security/index.ts",
+    "./config": "./src/config/index.ts",
+    "./theme.css": "./src/theme/theme.css"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "verify": "npm run typecheck && npm run lint && npm run test:coverage"
+  },
+  "peerDependencies": {
+    "next": "^16.3.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "tailwindcss": "^4.3.3",
+    "@next/third-parties": "^16.3.4",
+    "next-themes": "^0.4.6",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@next/third-parties": "^16.3.4",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^22.20.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "@vitest/coverage-v8": "^5.0.0",
+    "eslint": "^10.10.0",
+    "eslint-config-next": "^16.3.4",
+    "jsdom": "^30.0.1",
+    "next": "^16.3.4",
+    "next-themes": "^0.4.6",
+    "prettier": "^3.9.6",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.69.0",
+    "vitest": "^5.0.0",
+    "zod": "^4.5.4"
+  }
+}
