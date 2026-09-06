@@ -1,0 +1,68 @@
+@import 'tailwindcss';
+
+/*
+ * next-themes (ThemeProvider.tsx) toggles a `.dark` class on <html>.
+ * Tailwind v4 defaults its `dark:` variant to `prefers-color-scheme`; this
+ * recipe repoints it at the class instead, so `dark:` utilities respond to
+ * the runtime toggle rather than only the OS setting.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Fonts */
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  --font-mono:
+    ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace;
+
+  /* Colors -- light values (the default, applied when .dark is absent) */
+  --color-background: #ffffff;
+  --color-foreground: #0a0a0a;
+  --color-primary: #2563eb;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #f4f4f5;
+  --color-secondary-foreground: #18181b;
+  --color-muted: #f4f4f5;
+  --color-muted-foreground: #71717a;
+  --color-accent: #f4f4f5;
+  --color-accent-foreground: #18181b;
+  --color-border: #e4e4e7;
+  --color-ring: #2563eb;
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+
+  /* Radii */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  /* Spacing scale -- semantic aliases layered on Tailwind's numeric scale */
+  --spacing-gutter: 1.5rem;
+  --spacing-header: 4rem;
+  --spacing-section: 5rem;
+}
+
+/*
+ * Dark values. Every color token above has a counterpart here. Because
+ * these are the same custom properties (not a parallel set), a component
+ * that reads `var(--color-background)` never branches on theme -- the
+ * cascade resolves it once `.dark` lands on an ancestor.
+ */
+.dark {
+  --color-background: #0a0a0a;
+  --color-foreground: #fafafa;
+  --color-primary: #3b82f6;
+  --color-primary-foreground: #0a0a0a;
+  --color-secondary: #27272a;
+  --color-secondary-foreground: #fafafa;
+  --color-muted: #27272a;
+  --color-muted-foreground: #a1a1aa;
+  --color-accent: #27272a;
+  --color-accent-foreground: #fafafa;
+  --color-border: #3f3f46;
+  --color-ring: #3b82f6;
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #0a0a0a;
+}
