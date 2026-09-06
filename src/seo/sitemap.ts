@@ -18,7 +18,32 @@ export interface BuildSitemapInput {
   readonly siteUrl: string
   /** GitHub Pages project-page subpath, e.g. "/my-site". Mirrors `defineNextConfig`'s `basePath`. */
   readonly basePath?: string
+  /**
+   * Must match `trailingSlash` in the Next config — `defineNextConfig` sets
+   * it `true` for the `github-pages` target.
+   *
+   * This exists because Next rewrites a page's rendered
+   * `<link rel="canonical">` to carry a trailing slash when the option is
+   * on, but does not touch sitemap URLs. Composing both from
+   * `buildCanonicalUrl` is therefore not enough on its own: the canonical
+   * ends up as `https://host/repo/` while the sitemap says
+   * `https://host/repo`, and search engines treat those as two different
+   * URLs pointing at the same content. Passing the flag keeps them
+   * identical. Defaults to `false`, matching Next's own default.
+   */
+  readonly trailingSlash?: boolean
   readonly routes: readonly SitemapRouteInput[]
+}
+
+/**
+ * Appends the trailing slash Next would add to a rendered canonical URL.
+ * Left alone if one is already present, or if the URL has no path segment
+ * beyond the origin (`https://example.com` stays as-is, matching Next).
+ */
+function applyTrailingSlash(url: string, trailingSlash: boolean): string {
+  if (!trailingSlash || url.endsWith('/')) return url
+
+  return `${url}/`
 }
 
 /**
@@ -34,7 +59,10 @@ export interface BuildSitemapInput {
  */
 export function buildSitemap(input: BuildSitemapInput): MetadataRoute.Sitemap {
   return input.routes.map((route) => ({
-    url: buildCanonicalUrl(input.siteUrl, input.basePath, route.path),
+    url: applyTrailingSlash(
+      buildCanonicalUrl(input.siteUrl, input.basePath, route.path),
+      input.trailingSlash ?? false,
+    ),
     ...(route.lastModified === undefined ? {} : { lastModified: route.lastModified }),
     ...(route.changeFrequency === undefined ? {} : { changeFrequency: route.changeFrequency }),
     ...(route.priority === undefined ? {} : { priority: route.priority }),

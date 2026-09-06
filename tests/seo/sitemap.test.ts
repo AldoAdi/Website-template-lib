@@ -123,3 +123,58 @@ describe('buildRobots', () => {
     expect(robots.rules).toMatchObject({ userAgent: '*', disallow: '/' })
   })
 })
+
+describe('buildSitemap trailingSlash', () => {
+  // Regression guard for a mismatch that unit tests alone did not catch and
+  // only the built output revealed: both the canonical tag and the sitemap
+  // entry were composed from buildCanonicalUrl, so an equality test passed
+  // -- but Next rewrites the *rendered* canonical to carry a trailing slash
+  // when trailingSlash is on, and leaves the sitemap untouched. The live
+  // page said https://host/repo/ while the sitemap said https://host/repo.
+  const SITE = 'https://aldoadi.github.io'
+  const BASE = '/website-starter-usingtemplate-1'
+
+  test('adds the trailing slash Next adds to the canonical, for the root route', () => {
+    const [entry] = buildSitemap({
+      siteUrl: SITE,
+      basePath: BASE,
+      trailingSlash: true,
+      routes: [{ path: '/' }],
+    })
+
+    expect(entry?.url).toBe('https://aldoadi.github.io/website-starter-usingtemplate-1/')
+  })
+
+  test('adds it for a subpage too', () => {
+    const [entry] = buildSitemap({
+      siteUrl: SITE,
+      basePath: BASE,
+      trailingSlash: true,
+      routes: [{ path: '/about' }],
+    })
+
+    expect(entry?.url).toBe('https://aldoadi.github.io/website-starter-usingtemplate-1/about/')
+  })
+
+  test('omitted, it defaults off -- matching Next own default', () => {
+    const [entry] = buildSitemap({
+      siteUrl: SITE,
+      basePath: BASE,
+      routes: [{ path: '/about' }],
+    })
+
+    expect(entry?.url).toBe('https://aldoadi.github.io/website-starter-usingtemplate-1/about')
+  })
+
+  test('never doubles an existing slash', () => {
+    const [entry] = buildSitemap({
+      siteUrl: SITE,
+      basePath: BASE,
+      trailingSlash: true,
+      routes: [{ path: '/about/' }],
+    })
+
+    expect(entry?.url).not.toContain('//about')
+    expect(entry?.url.endsWith('//')).toBe(false)
+  })
+})
