@@ -1,7 +1,6 @@
 import type { ReactElement, ReactNode } from 'react'
 import Link from 'next/link'
-
-export type CardHeadingLevel = 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+import type { SubHeadingLevel } from '../headingLevel'
 
 export interface CardProps {
   /**
@@ -15,7 +14,7 @@ export interface CardProps {
   /** When given, the whole card becomes a single clickable link named by `title`. */
   readonly href?: string
   /** Heading level for the title, so a page can keep a sane heading order. Defaults to `h3`. */
-  readonly headingLevel?: CardHeadingLevel
+  readonly headingLevel?: SubHeadingLevel
   readonly className?: string
 }
 

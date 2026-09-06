@@ -1,10 +1,8 @@
 import type { ElementType, ReactElement, ReactNode } from 'react'
 import Link from 'next/link'
+import type { HeadingLevel } from '../headingLevel'
 import { Container } from '../layout/Container'
 import { Section } from '../layout/Section'
-
-/** Any HTML heading tag. Kept as a plain union rather than a shared export so `Hero` and `CTA` stay independent of each other. */
-export type HeadingLevel = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
 
 export interface HeroAction {
   readonly label: string
@@ -58,16 +56,12 @@ export function Hero({
       <Container className="grid gap-10 md:grid-cols-2 md:items-center">
         <div className="flex flex-col gap-6">
           {eyebrow ? (
-            <p className="text-primary text-sm font-semibold tracking-wide uppercase">
-              {eyebrow}
-            </p>
+            <p className="text-primary text-sm font-semibold tracking-wide uppercase">{eyebrow}</p>
           ) : null}
           <HeadlineTag className="text-4xl font-bold tracking-tight text-balance md:text-5xl">
             {headline}
           </HeadlineTag>
-          {subhead ? (
-            <p className="text-muted-foreground text-lg text-balance">{subhead}</p>
-          ) : null}
+          {subhead ? <p className="text-muted-foreground text-lg text-balance">{subhead}</p> : null}
           <div className="flex flex-wrap gap-4">
             <Link href={primaryAction.href} className={PRIMARY_ACTION_CLASSES}>
               {primaryAction.label}

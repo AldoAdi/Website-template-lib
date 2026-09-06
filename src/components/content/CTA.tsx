@@ -1,10 +1,8 @@
 import type { ElementType, ReactElement, ReactNode } from 'react'
 import Link from 'next/link'
+import type { HeadingLevel } from '../headingLevel'
 import { Container } from '../layout/Container'
 import { Section } from '../layout/Section'
-
-/** Any HTML heading tag. Kept as a plain union rather than a shared export so `Hero` and `CTA` stay independent of each other. */
-export type HeadingLevel = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
 
 export interface CTAAction {
   readonly label: string
