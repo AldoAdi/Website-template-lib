@@ -31,7 +31,8 @@ export const MESSAGE_MAX_LENGTH = 5000
  * combining accent), "李", or one containing an emoji is legitimate
  * international input, not an attack — see tests/security/validate.test.ts.
  */
-const STRIPPED_CHARS_PATTERN = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u200B-\u200D\uFEFF]/g
+const STRIPPED_CHARS_PATTERN =
+  /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u200B-\u200D\uFEFF]/g
 
 /** Strips control/zero-width characters (see above) and trims whitespace. */
 export function sanitizeText(value: string): string {
