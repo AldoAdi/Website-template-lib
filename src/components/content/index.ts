@@ -1,6 +1,6 @@
 export { Hero, HERO_PRIMARY_ACTION_CLASSES, HERO_SECONDARY_ACTION_CLASSES } from './Hero'
 export type { HeroProps, HeroAction } from './Hero'
-export { CTA } from './CTA'
+export { CTA, CTA_ACTION_CLASSES } from './CTA'
 export type { CTAProps, CTAAction } from './CTA'
 export { Card } from './Card'
 export type { CardProps } from './Card'

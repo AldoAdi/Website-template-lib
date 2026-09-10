@@ -14,13 +14,24 @@ export interface CTAProps {
   /** Heading tag rendered for `heading`. Defaults to `h2` -- CTA is never the source of the page's one `<h1>`. */
   readonly headingLevel?: HeadingLevel
   readonly body: ReactNode
-  readonly action: CTAAction
+  /** Ignored when `actionSlot` is given. */
+  readonly action?: CTAAction
+  /**
+   * Replaces the rendered action with a caller-supplied element.
+   *
+   * Same reason `Hero` has `primaryActionSlot`: `action` renders a bare
+   * `<Link>` that records nothing, and a CTA band is usually the page's
+   * second-best converting spot -- worth measuring separately from the
+   * hero, which needs a tracked anchor here rather than a plain one.
+   */
+  readonly actionSlot?: ReactNode
   readonly className?: string
 }
 
 const CTA_CLASSES = 'bg-primary text-primary-foreground'
 
-const ACTION_CLASSES =
+/** Exported so a caller filling `actionSlot` can match the button it replaces. */
+export const CTA_ACTION_CLASSES =
   'bg-background text-foreground hover:bg-background/90 inline-flex items-center justify-center rounded-md px-6 py-3 text-sm font-medium transition-colors'
 
 /**
@@ -38,6 +49,7 @@ export function CTA({
   headingLevel = 'h2',
   body,
   action,
+  actionSlot,
   className,
 }: CTAProps): ReactElement {
   const HeadingTag: ElementType = headingLevel
@@ -50,9 +62,12 @@ export function CTA({
           {heading}
         </HeadingTag>
         <p className="max-w-2xl text-lg text-balance opacity-90">{body}</p>
-        <Link href={action.href} className={ACTION_CLASSES}>
-          {action.label}
-        </Link>
+        {actionSlot ??
+          (action ? (
+            <Link href={action.href} className={CTA_ACTION_CLASSES}>
+              {action.label}
+            </Link>
+          ) : null)}
       </Container>
     </Section>
   )
