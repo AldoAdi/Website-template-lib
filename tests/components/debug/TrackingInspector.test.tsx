@@ -12,6 +12,7 @@ beforeEach(() => {
   window.gtag = vi.fn()
   process.env.NEXT_PUBLIC_GA_ID = 'G-TEST'
   window.history.replaceState({}, '', '/')
+  window.sessionStorage.clear()
 })
 
 afterEach(() => {
@@ -29,12 +30,58 @@ describe('TrackingInspector', () => {
     expect(screen.queryByLabelText('Tracking inspector')).toBeNull()
   })
 
-  test('opens when the url carries the debug parameter', () => {
+  test('appears when the url carries the debug parameter', () => {
     window.history.replaceState({}, '', '/?debug=tracking')
 
-    render(<TrackingInspector />)
+    render(<TrackingInspector defaultOpen />)
 
     expect(screen.getByLabelText('Tracking inspector')).toBeDefined()
+  })
+
+  test('stays visible after navigating away from the debug url, for the rest of the session', () => {
+    window.history.replaceState({}, '', '/?debug=tracking')
+    const first = render(<TrackingInspector defaultOpen />)
+    expect(screen.getByLabelText('Tracking inspector')).toBeDefined()
+    first.unmount()
+
+    // The booking route carries no query string -- the panel must survive it,
+    // or it closes exactly when the interesting events fire.
+    window.history.replaceState({}, '', '/book/')
+    render(<TrackingInspector defaultOpen />)
+
+    expect(screen.getByLabelText('Tracking inspector')).toBeDefined()
+  })
+
+  test('collapses to a badge by default, so it cannot swallow clicks on a CTA', () => {
+    render(<TrackingInspector enabled />)
+
+    expect(screen.queryByLabelText('Tracking inspector')).toBeNull()
+    expect(screen.getByRole('button', { name: /0 events/ })).toBeDefined()
+  })
+
+  test('the badge expands the panel, and Hide collapses it again', () => {
+    render(<TrackingInspector enabled />)
+
+    act(() => {
+      screen.getByRole('button', { name: /0 events/ }).click()
+    })
+    expect(screen.getByLabelText('Tracking inspector')).toBeDefined()
+
+    act(() => {
+      screen.getByRole('button', { name: 'Hide' }).click()
+    })
+    expect(screen.queryByLabelText('Tracking inspector')).toBeNull()
+  })
+
+  test('the badge counts events while collapsed', () => {
+    grantConsent()
+    render(<TrackingInspector enabled />)
+
+    act(() => {
+      track('cta_click', {})
+    })
+
+    expect(screen.getByRole('button', { name: /1 event ·/ })).toBeDefined()
   })
 
   test('ignores an unrelated debug value', () => {
@@ -46,7 +93,7 @@ describe('TrackingInspector', () => {
   })
 
   test('an explicit enabled prop overrides the url', () => {
-    render(<TrackingInspector enabled />)
+    render(<TrackingInspector enabled defaultOpen />)
 
     expect(screen.getByLabelText('Tracking inspector')).toBeDefined()
   })
@@ -54,20 +101,21 @@ describe('TrackingInspector', () => {
   test('an explicit enabled={false} wins even with the debug parameter set', () => {
     window.history.replaceState({}, '', '/?debug=tracking')
 
-    render(<TrackingInspector enabled={false} />)
+    render(<TrackingInspector enabled={false} defaultOpen />)
 
     expect(screen.queryByLabelText('Tracking inspector')).toBeNull()
+    expect(screen.queryByRole('button')).toBeNull()
   })
 
   test('says so when nothing has fired yet', () => {
-    render(<TrackingInspector enabled />)
+    render(<TrackingInspector enabled defaultOpen />)
 
     expect(screen.getByText(/no events yet/i)).toBeDefined()
   })
 
   test('shows an event and its properties as it is sent', () => {
     grantConsent()
-    render(<TrackingInspector enabled />)
+    render(<TrackingInspector enabled defaultOpen />)
 
     act(() => {
       track('booking_handoff', { session_id: 'sid-1' })
@@ -79,7 +127,7 @@ describe('TrackingInspector', () => {
   })
 
   test('marks an event the consent gate held back, rather than pretending it sent', () => {
-    render(<TrackingInspector enabled />)
+    render(<TrackingInspector enabled defaultOpen />)
 
     act(() => {
       track('cta_click', { cta_location: 'hero' })
@@ -90,7 +138,7 @@ describe('TrackingInspector', () => {
 
   test('shows newest first', () => {
     grantConsent()
-    render(<TrackingInspector enabled />)
+    render(<TrackingInspector enabled defaultOpen />)
 
     act(() => {
       track('booking_view', {})
@@ -102,7 +150,7 @@ describe('TrackingInspector', () => {
   })
 
   test('reports the consent state in the header', () => {
-    render(<TrackingInspector enabled />)
+    render(<TrackingInspector enabled defaultOpen />)
     expect(screen.getByText(/consent:unknown/)).toBeDefined()
 
     act(() => {
@@ -113,7 +161,7 @@ describe('TrackingInspector', () => {
 
   test('has no axe violations', async () => {
     grantConsent()
-    const { container } = render(<TrackingInspector enabled />)
+    const { container } = render(<TrackingInspector enabled defaultOpen />)
 
     act(() => {
       track('cta_click', { cta_location: 'hero' })

@@ -13,43 +13,74 @@ import type { AnalyticsRecord, AnalyticsTransport, ConsentState } from '../../an
 export const DEBUG_PARAM = 'debug'
 export const DEBUG_VALUE = 'tracking'
 
+/**
+ * Survives navigation. Turning the panel on with `?debug=tracking` and then
+ * clicking a CTA would otherwise close it at exactly the moment the
+ * interesting events fire, because the next URL carries no query string.
+ */
+export const DEBUG_STORAGE_KEY = 'debug-tracking'
+
 /** Enough history to see a whole funnel without the panel growing without bound. */
 export const MAX_INSPECTED_EVENTS = 30
 
 export interface TrackingInspectorProps {
   /**
-   * Forces the panel on or off. When omitted it shows only if the URL
-   * carries `?debug=tracking`, so it can be opened on a live site without a
-   * deploy and stays invisible to real visitors.
+   * Forces the panel on or off. When omitted it shows once the URL has
+   * carried `?debug=tracking` at any point this session, so it stays
+   * invisible to real visitors.
    */
   readonly enabled?: boolean
+  /** Start expanded rather than as a badge. */
+  readonly defaultOpen?: boolean
 }
+
+// Collapsed by default, and this is not a style preference. An expanded
+// fixed-position panel sits on top of whatever is in the bottom-right
+// corner and swallows its clicks -- which on a marketing page is usually a
+// CTA, i.e. exactly the thing being measured. A debug tool that breaks the
+// behaviour under test is worse than no debug tool.
+const BADGE_CLASSES =
+  'bg-foreground text-background fixed right-4 bottom-4 z-[100] rounded-full px-3 py-2 font-mono text-xs shadow-lg'
 
 const PANEL_CLASSES =
   'bg-background text-foreground border-border fixed right-4 bottom-4 z-[100] flex max-h-[70vh] w-[min(28rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-lg border shadow-lg'
 
 const ROW_CLASSES = 'border-border border-t px-3 py-2 font-mono text-xs'
 
-// The query string never changes without a navigation, so there is nothing
-// to subscribe to -- but reading it through useSyncExternalStore is what
-// keeps the server render ('off') from disagreeing with the client's first
-// paint, instead of settling it with a setState inside an effect.
+const TOGGLE_CLASSES = 'rounded px-2 py-0.5 text-xs font-normal underline underline-offset-2'
+
 function subscribeToNothing(): () => void {
   return () => undefined
 }
 
-function readDebugParam(): boolean {
-  return new URLSearchParams(window.location.search).get(DEBUG_PARAM) === DEBUG_VALUE
+/**
+ * True once `?debug=tracking` has been seen this session. Reading storage
+ * rather than only the current URL is what lets the panel follow a visitor
+ * from the landing page through to the booking route.
+ */
+function readDebugFlag(): boolean {
+  try {
+    if (new URLSearchParams(window.location.search).get(DEBUG_PARAM) === DEBUG_VALUE) {
+      window.sessionStorage.setItem(DEBUG_STORAGE_KEY, 'on')
+      return true
+    }
+
+    return window.sessionStorage.getItem(DEBUG_STORAGE_KEY) === 'on'
+  } catch {
+    // Storage can throw on property access alone (Safari private mode).
+    // Fall back to the URL, which still works for a single page.
+    return new URLSearchParams(window.location.search).get(DEBUG_PARAM) === DEBUG_VALUE
+  }
 }
 
 // The server cannot know the query string: under `output: 'export'` every
 // page is prerendered once, with no request to read.
-function debugParamServerSnapshot(): boolean {
+function debugFlagServerSnapshot(): boolean {
   return false
 }
 
 function useIsEnabled(enabled: boolean | undefined): boolean {
-  const fromUrl = useSyncExternalStore(subscribeToNothing, readDebugParam, debugParamServerSnapshot)
+  const fromUrl = useSyncExternalStore(subscribeToNothing, readDebugFlag, debugFlagServerSnapshot)
 
   return enabled ?? fromUrl
 }
@@ -75,16 +106,20 @@ function consentServerSnapshot(): ConsentState {
  * It reports what the library sent, which is the half that is ours. Whether
  * a GTM container then forwarded it to GA4 is the container's business --
  * confirm that in GTM Preview and GA4 DebugView, which is exactly what the
- * `transport` column tells you to go and check.
+ * `transport` reading tells you to go and check.
  */
-export function TrackingInspector({ enabled }: TrackingInspectorProps = {}): ReactElement | null {
+export function TrackingInspector({
+  enabled,
+  defaultOpen = false,
+}: TrackingInspectorProps = {}): ReactElement | null {
   const isEnabled = useIsEnabled(enabled)
   const consent = useSyncExternalStore(subscribeToConsent, getConsentState, consentServerSnapshot)
   const [records, setRecords] = useState<readonly AnalyticsRecord[]>([])
   const [dataLayerSize, setDataLayerSize] = useState(0)
+  const [isOpen, setIsOpen] = useState(defaultOpen)
 
-  // Pure read of inlined env vars, so it is stable across server and client
-  // and needs no state of its own.
+  // Pure read of inlined env vars, stable across server and client, so it
+  // needs no state of its own.
   const transport: AnalyticsTransport = resolveTransport()
 
   useEffect(() => {
@@ -98,12 +133,25 @@ export function TrackingInspector({ enabled }: TrackingInspectorProps = {}): Rea
 
   if (!isEnabled) return null
 
+  if (!isOpen) {
+    return (
+      <button type="button" className={BADGE_CLASSES} onClick={() => setIsOpen(true)}>
+        {records.length} event{records.length === 1 ? '' : 's'} · {transport}
+      </button>
+    )
+  }
+
   return (
     <aside className={PANEL_CLASSES} aria-label="Tracking inspector">
       <header className="bg-muted flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold">
         <span>Tracking inspector</span>
-        <span className="font-mono font-normal">
-          {transport} · consent:{consent} · dataLayer:{dataLayerSize}
+        <span className="flex items-center gap-2">
+          <span className="font-mono font-normal">
+            {transport} · consent:{consent} · dataLayer:{dataLayerSize}
+          </span>
+          <button type="button" className={TOGGLE_CLASSES} onClick={() => setIsOpen(false)}>
+            Hide
+          </button>
         </span>
       </header>
 
