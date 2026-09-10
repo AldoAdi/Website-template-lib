@@ -10,6 +10,10 @@ export interface DefineNextConfigOptions {
   readonly repoName?: string
   /** Extra origins for the CSP `connect-src` allowlist. See `SecurityHeaderOptions`. */
   readonly connectSrc?: readonly string[]
+  /** Extra origins for the CSP `script-src` allowlist -- GTM tags usually need these. */
+  readonly scriptSrc?: readonly string[]
+  /** Extra origins for the CSP `img-src` allowlist -- conversion pixels need these. */
+  readonly imgSrc?: readonly string[]
 }
 
 const GITHUB_PAGES_TRAILING_SLASH = true
@@ -25,9 +29,11 @@ export function defineNextConfig(options: DefineNextConfigOptions): NextConfig {
     return buildGithubPagesConfig(options.repoName)
   }
 
-  return buildVercelConfig(
-    options.connectSrc === undefined ? {} : { connectSrc: options.connectSrc },
-  )
+  return buildVercelConfig({
+    ...(options.connectSrc === undefined ? {} : { connectSrc: options.connectSrc }),
+    ...(options.scriptSrc === undefined ? {} : { scriptSrc: options.scriptSrc }),
+    ...(options.imgSrc === undefined ? {} : { imgSrc: options.imgSrc }),
+  })
 }
 
 const ALL_ROUTES_SOURCE = '/:path*'

@@ -158,7 +158,8 @@ describe('connect-src allowlist extension', () => {
     const csp = getHttpSecurityHeaders().find((h) => h.key === 'Content-Security-Policy')?.value
 
     expect(connectSrcOf(csp ?? '')).toBe(
-      "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://api.web3forms.com",
+      "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com " +
+        'https://www.googletagmanager.com https://api.web3forms.com',
     )
   })
 
@@ -192,5 +193,54 @@ describe('connect-src allowlist extension', () => {
       'https://ingest.example',
     )
     expect(meta[0]?.content).toContain('https://ingest.example')
+  })
+})
+
+describe('script-src and img-src allowlist extensions', () => {
+  function directiveOf(csp: string, name: string): string {
+    return csp.split('; ').find((directive) => directive.startsWith(`${name} `)) ?? ''
+  }
+
+  function httpCsp(options?: Parameters<typeof getHttpSecurityHeaders>[0]): string {
+    return (
+      getHttpSecurityHeaders(options).find((h) => h.key === 'Content-Security-Policy')?.value ?? ''
+    )
+  }
+
+  test('GTM can reach its container: the origin is in both script-src and connect-src', () => {
+    const csp = httpCsp()
+
+    expect(directiveOf(csp, 'script-src')).toContain('https://www.googletagmanager.com')
+    expect(directiveOf(csp, 'connect-src')).toContain('https://www.googletagmanager.com')
+  })
+
+  test('appends caller-supplied script origins, which is what GTM tags need', () => {
+    const csp = httpCsp({ scriptSrc: ['https://connect.facebook.net'] })
+
+    expect(directiveOf(csp, 'script-src')).toContain('https://connect.facebook.net')
+  })
+
+  test('appends caller-supplied image origins, which is what conversion pixels need', () => {
+    const csp = httpCsp({ imgSrc: ['https://www.google.com'] })
+
+    expect(directiveOf(csp, 'img-src')).toContain('https://www.google.com')
+  })
+
+  test('img-src keeps its defaults when extended', () => {
+    const imgSrc = directiveOf(httpCsp({ imgSrc: ['https://www.google.com'] }), 'img-src')
+
+    expect(imgSrc).toContain("'self'")
+    expect(imgSrc).toContain('data:')
+  })
+
+  test('rejects a forged directive in any of the three lists', () => {
+    const csp = httpCsp({
+      scriptSrc: ["https://evil.example; object-src 'self'"],
+      imgSrc: ['https://evil.example; base-uri *'],
+    })
+
+    expect(csp).toContain("object-src 'none'")
+    expect(csp).toContain("base-uri 'self'")
+    expect(csp).not.toContain('base-uri *')
   })
 })

@@ -28,7 +28,10 @@ function withField(field: keyof RawContactSubmission, value: string): RawContact
 }
 
 describe('validateContactSubmission — valid submissions', () => {
-  const validCases: ReadonlyArray<{ readonly label: string; readonly input: RawContactSubmission }> = [
+  const validCases: ReadonlyArray<{
+    readonly label: string
+    readonly input: RawContactSubmission
+  }> = [
     { label: 'plain ASCII name/email/message', input: VALID },
     { label: 'precomposed accented name (Jos\u00e9)', input: withField('name', 'Jos\u00e9') },
     {
@@ -37,7 +40,10 @@ describe('validateContactSubmission — valid submissions', () => {
     },
     { label: 'non-Latin script name (CJK)', input: withField('name', '\u674e') },
     { label: 'name containing an emoji', input: withField('name', `Ada ${PARTY_EMOJI}`) },
-    { label: 'subaddressed email (plus tag)', input: withField('email', 'ada+newsletter@example.com') },
+    {
+      label: 'subaddressed email (plus tag)',
+      input: withField('email', 'ada+newsletter@example.com'),
+    },
     { label: 'email with subdomain', input: withField('email', 'ada@mail.example.co.uk') },
   ]
 
