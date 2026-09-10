@@ -28,25 +28,30 @@ behind it is now a config value.
 
 ## Wiring a site
 
-### 1. Choose the sinks
+### 1. Point at the scheduler
 
 ```ts
 // app/bookingConfig.ts
-import { createGaSink, type BookingSink } from '@aldoadi/website-template/booking'
-
 export const BOOKING_URL = process.env.NEXT_PUBLIC_BOOKING_URL ?? ''
-
-// One array, referenced everywhere. A new array on each render would retrigger
-// BookingRedirect's effect, so keep it module-level.
-export const BOOKING_SINKS: readonly BookingSink[] = [createGaSink()]
+export const BOOKING_PATH = '/book'
 ```
+
+Sinks need no wiring. They are resolved from the environment
+(`getBookingSinks`): GA4 always, plus a first-party ingest sink if
+`NEXT_PUBLIC_BOOKING_INGEST_URL` is set.
+
+They are deliberately _not_ props. A sink is an object carrying functions, and
+Next forbids passing a function from a server component to a client one — so
+prop-passing would fail the build on any ordinary page. To override them, call
+`configureBookingSinks` from a `'use client'` module imported by the root
+layout. Most sites never need to.
 
 ### 2. The booking route
 
 ```tsx
 // app/book/page.tsx
 import { BookingRedirect } from '@aldoadi/website-template/booking'
-import { BOOKING_SINKS, BOOKING_URL } from '../bookingConfig'
+import { BOOKING_URL } from '../bookingConfig'
 
 // A redirector has no content to rank and reads as a doorway page if indexed.
 export const metadata = { robots: { index: false, follow: true } }
@@ -55,7 +60,6 @@ export default function BookPage() {
   return (
     <BookingRedirect
       providerUrl={BOOKING_URL}
-      sinks={BOOKING_SINKS}
       fallback={<a href="tel:+15625550100">Or call (562) 555-0100</a>}
     />
   )
@@ -68,9 +72,14 @@ stays indexed and points its CTA here.
 ### 3. The CTAs
 
 ```tsx
-<BookingLink href="/book" location="hero" sinks={BOOKING_SINKS} className={BUTTON}>
-  Book an appointment
-</BookingLink>
+<Hero
+  headline="…"
+  primaryActionSlot={
+    <BookingLink href="/book" location="hero" className={HERO_PRIMARY_ACTION_CLASSES}>
+      Book an appointment
+    </BookingLink>
+  }
+/>
 ```
 
 `location` is what lets you rank CTA placements later — which is usually the
@@ -86,7 +95,7 @@ confirmation URL?_ If yes, point it at `/book/confirmed`:
 
 ```tsx
 // app/book/confirmed/page.tsx
-<BookingConfirmed sinks={BOOKING_SINKS}>
+<BookingConfirmed>
   <p>You're booked. We'll see you soon.</p>
 </BookingConfirmed>
 ```
@@ -158,10 +167,12 @@ import { bookingStore } from '../../bookingStore'
 export const POST = createIngestHandler(bookingStore)
 ```
 
-### 3. Add the sink
+### 3. Turn on the sink
 
-```ts
-export const BOOKING_SINKS = [createGaSink(), createHttpSink('/api/booking-event')]
+One environment variable — no code change:
+
+```
+NEXT_PUBLIC_BOOKING_INGEST_URL=/api/booking-event
 ```
 
 A same-origin endpoint needs no CSP change. A different origin does:

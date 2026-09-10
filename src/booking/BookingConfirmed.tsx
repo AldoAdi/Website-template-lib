@@ -1,11 +1,13 @@
 'use client'
 
 import { useEffect, useRef, type ReactElement, type ReactNode } from 'react'
+import { getBookingSinks } from './config'
 import { recordBookingStep } from './recordStep'
 import type { BookingSink } from './sink'
 
 export interface BookingConfirmedProps {
-  readonly sinks: readonly BookingSink[]
+  /** Defaults to the app-wide sinks. Sinks cannot be passed from a server component -- see `config.ts`. */
+  readonly sinks?: readonly BookingSink[]
   readonly children: ReactNode
 }
 
@@ -29,13 +31,14 @@ export interface BookingConfirmedProps {
  */
 export function BookingConfirmed({ sinks, children }: BookingConfirmedProps): ReactElement {
   const hasRun = useRef(false)
+  const activeSinks = sinks ?? getBookingSinks()
 
   useEffect(() => {
     if (hasRun.current) return
     hasRun.current = true
 
-    recordBookingStep('booking_confirmed', sinks)
-  }, [sinks])
+    recordBookingStep('booking_confirmed', activeSinks)
+  }, [activeSinks])
 
   return <>{children}</>
 }

@@ -36,6 +36,8 @@ export {
 } from './sink'
 export type { BookingSink, HttpSinkOptions, MemorySink } from './sink'
 
+export { configureBookingSinks, getBookingSinks, resetBookingSinks } from './config'
+
 export { buildBookingUrl, SESSION_PARAM, VISITOR_PARAM } from './buildBookingUrl'
 export type { BuildBookingUrlInput } from './buildBookingUrl'
 

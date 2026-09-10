@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactElement, type ReactNode } from 'react'
 import { buildBookingUrl } from './buildBookingUrl'
 import { getAttribution } from './attribution'
+import { getBookingSinks } from './config'
 import { getSessionId, getVisitorId } from './ids'
 import { recordBookingStep } from './recordStep'
 import type { BookingSink } from './sink'
@@ -21,7 +22,8 @@ export const DEFAULT_REDIRECT_DELAY_MS = 400
 export interface BookingRedirectProps {
   /** The third-party scheduler URL. */
   readonly providerUrl: string
-  readonly sinks: readonly BookingSink[]
+  /** Defaults to the app-wide sinks. Sinks cannot be passed from a server component -- see `config.ts`. */
+  readonly sinks?: readonly BookingSink[]
   /** Forward last-touch `utm_*` to the scheduler. Off unless the vendor has confirmed what it does with them. */
   readonly forwardUtm?: boolean
   readonly heading?: string
@@ -69,6 +71,7 @@ export function BookingRedirect({
 }: BookingRedirectProps): ReactElement {
   const hasRun = useRef(false)
   const [destination, setDestination] = useState<string | null>(null)
+  const activeSinks = sinks ?? getBookingSinks()
 
   useEffect(() => {
     // React StrictMode runs effects twice in development. Without this
@@ -77,7 +80,7 @@ export function BookingRedirect({
     if (hasRun.current) return
     hasRun.current = true
 
-    recordBookingStep('booking_view', sinks, { captureFromUrl: true })
+    recordBookingStep('booking_view', activeSinks, { captureFromUrl: true })
 
     const url = buildBookingUrl({
       providerUrl,
@@ -88,7 +91,7 @@ export function BookingRedirect({
     })
     setDestination(url)
 
-    recordBookingStep('booking_handoff', sinks)
+    recordBookingStep('booking_handoff', activeSinks)
 
     // `replace`, not `assign`: the interstitial must not sit in history, or
     // Back from the scheduler bounces the visitor straight into it again.
@@ -99,7 +102,7 @@ export function BookingRedirect({
     return () => {
       window.clearTimeout(timer)
     }
-  }, [providerUrl, sinks, forwardUtm, redirectDelayMs])
+  }, [providerUrl, activeSinks, forwardUtm, redirectDelayMs])
 
   const classes = className ? `${WRAPPER_CLASSES} ${className}` : WRAPPER_CLASSES
 

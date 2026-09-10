@@ -409,7 +409,14 @@ past `booking_handoff` is a modelled estimate and should be labelled as one.
 `./booking` — `BookingLink`, `BookingRedirect`, `BookingConfirmed`,
 `recordBookingStep`, `buildBookingUrl`, `parseAttribution`, `recordAttribution`,
 `getAttribution`, `getVisitorId`, `getSessionId`, `createGaSink`,
-`createHttpSink`, `createMemorySink`, `emitBookingEvent`.
+`createHttpSink`, `createMemorySink`, `emitBookingEvent`,
+`configureBookingSinks`, `getBookingSinks`.
+
+Sinks are resolved at module scope rather than passed as props: they are objects
+carrying functions, and Next forbids a server component handing a function to a
+client component, which every booking CTA would have had to do. `Hero` gains
+`primaryActionSlot` for the same reason its `primaryAction` could not host a
+tracked CTA.
 
 `./booking/server` — `createIngestHandler`, `createMemoryBookingStore`,
 `BookingStore`.

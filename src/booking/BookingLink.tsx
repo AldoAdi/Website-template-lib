@@ -2,6 +2,7 @@
 
 import type { MouseEvent, ReactElement, ReactNode } from 'react'
 import Link from 'next/link'
+import { getBookingSinks } from './config'
 import { recordBookingStep } from './recordStep'
 import type { BookingSink } from './sink'
 
@@ -10,7 +11,8 @@ export interface BookingLinkProps {
   readonly href: string
   /** Where this CTA sits on the page, e.g. `'hero'`. Recorded so the funnel can rank CTA placements. */
   readonly location: string
-  readonly sinks: readonly BookingSink[]
+  /** Defaults to the app-wide sinks. Sinks cannot be passed from a server component -- see `config.ts`. */
+  readonly sinks?: readonly BookingSink[]
   readonly children: ReactNode
   readonly className?: string
 }
@@ -39,13 +41,15 @@ export function BookingLink({
   children,
   className,
 }: BookingLinkProps): ReactElement {
+  const activeSinks = sinks ?? getBookingSinks()
+
   function handleClick(event: MouseEvent<HTMLAnchorElement>): void {
     // A modified click opens a new tab and leaves this page alive, so the
     // visitor has not begun the funnel here -- recording it would inflate
     // cta_click against the booking_view that never follows in this tab.
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
 
-    recordBookingStep('cta_click', sinks, { location })
+    recordBookingStep('cta_click', activeSinks, { location })
   }
 
   return (
