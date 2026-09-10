@@ -34,16 +34,24 @@ export interface TrackingInspectorProps {
   readonly defaultOpen?: boolean
 }
 
-// Collapsed by default, and this is not a style preference. An expanded
-// fixed-position panel sits on top of whatever is in the bottom-right
-// corner and swallows its clicks -- which on a marketing page is usually a
-// CTA, i.e. exactly the thing being measured. A debug tool that breaks the
-// behaviour under test is worse than no debug tool.
+// Collapsed by default and anchored bottom-LEFT, neither of which is a
+// style preference. Both were found by driving a real page:
+//
+//  - An expanded fixed panel sits on top of whatever is in the corner and
+//    swallows its clicks. A debug tool that breaks the behaviour under test
+//    is worse than no debug tool.
+//  - Bottom-right is where CookieBanner puts Accept/Reject and where a
+//    floating CTA usually lives. The badge covered the consent buttons, so
+//    consent could not be granted -- and no events fire before consent, so
+//    the panel proved the funnel was broken when it was the panel.
+//
+// Left still overlaps the banner's text, which is harmless; its buttons are
+// on the right.
 const BADGE_CLASSES =
-  'bg-foreground text-background fixed right-4 bottom-4 z-[100] rounded-full px-3 py-2 font-mono text-xs shadow-lg'
+  'bg-foreground text-background fixed bottom-4 left-4 z-[100] rounded-full px-3 py-2 font-mono text-xs shadow-lg'
 
 const PANEL_CLASSES =
-  'bg-background text-foreground border-border fixed right-4 bottom-4 z-[100] flex max-h-[70vh] w-[min(28rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-lg border shadow-lg'
+  'bg-background text-foreground border-border fixed bottom-4 left-4 z-[100] flex max-h-[70vh] w-[min(28rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-lg border shadow-lg'
 
 const ROW_CLASSES = 'border-border border-t px-3 py-2 font-mono text-xs'
 
