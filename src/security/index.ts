@@ -17,4 +17,9 @@ export type {
 export { isSpamSubmission, MIN_DWELL_TIME_MS } from './honeypot'
 export type { HoneypotCheck } from './honeypot'
 export { securityHeaders, getHttpSecurityHeaders, getMetaSecurityTags } from './headers'
-export type { SecurityHeaders, HttpSecurityHeader, MetaSecurityTag } from './headers'
+export type {
+  SecurityHeaders,
+  SecurityHeaderOptions,
+  HttpSecurityHeader,
+  MetaSecurityTag,
+} from './headers'

@@ -125,16 +125,55 @@ export interface SecurityHeaders {
   readonly meta: readonly MetaSecurityTag[]
 }
 
+export interface SecurityHeaderOptions {
+  /**
+   * Extra origins appended to `connect-src`.
+   *
+   * The default allowlist covers only what the library itself talks to
+   * (GA4 and Web3Forms). A site that points `createHttpSink` at its own
+   * ingest endpoint on another origin, or adds any other beacon, has to
+   * declare it here or the browser blocks the request -- and a CSP-blocked
+   * beacon fails silently, which looks exactly like "the funnel does not
+   * work" with nothing in the network tab to explain it.
+   *
+   * A same-origin endpoint (`/api/booking-event`) is already covered by
+   * `'self'` and needs no entry.
+   */
+  readonly connectSrc?: readonly string[]
+}
+
+/**
+ * Origins are concatenated into a CSP string, where a stray space or
+ * semicolon would silently end one directive and start another. Rejecting
+ * them is safer than emitting a policy that reads as valid but is not the
+ * one that was asked for.
+ */
+function normalizeConnectSrc(origins: readonly string[] | undefined): readonly string[] {
+  if (origins === undefined) return []
+
+  return origins
+    .map((origin) => origin.trim())
+    .filter((origin) => origin !== '' && !/[\s;,]/.test(origin))
+}
+
 /**
  * Directives shared by both delivery shapes. `frame-ancestors` is added
  * separately, only for the HTTP shape — see module docs for why a
  * meta-delivered `frame-ancestors` would be silently ignored by the browser.
  */
-function buildBaseCspDirectives(): readonly string[] {
+function buildBaseCspDirectives(options: SecurityHeaderOptions = {}): readonly string[] {
+  const connectSrc = [
+    "'self'",
+    GOOGLE_ANALYTICS_ORIGIN,
+    GOOGLE_ANALYTICS_WILDCARD,
+    WEB3FORMS_ORIGIN,
+    ...normalizeConnectSrc(options.connectSrc),
+  ].join(' ')
+
   return [
     "default-src 'self'",
     `script-src 'self' 'unsafe-inline' ${GOOGLE_TAG_MANAGER_ORIGIN}`,
-    `connect-src 'self' ${GOOGLE_ANALYTICS_ORIGIN} ${GOOGLE_ANALYTICS_WILDCARD} ${WEB3FORMS_ORIGIN}`,
+    `connect-src ${connectSrc}`,
     "img-src 'self' data:",
     // 'unsafe-inline' is required here for the same structural reason as
     // script-src, and it was found by loading the built page in a real
@@ -155,21 +194,23 @@ function buildBaseCspDirectives(): readonly string[] {
   ]
 }
 
-function buildHttpCsp(): string {
-  return [...buildBaseCspDirectives(), "frame-ancestors 'none'"].join('; ')
+function buildHttpCsp(options: SecurityHeaderOptions): string {
+  return [...buildBaseCspDirectives(options), "frame-ancestors 'none'"].join('; ')
 }
 
-function buildMetaCsp(): string {
-  return buildBaseCspDirectives().join('; ')
+function buildMetaCsp(options: SecurityHeaderOptions): string {
+  return buildBaseCspDirectives(options).join('; ')
 }
 
 /**
  * Real HTTP response headers for the Vercel target. See module docs for
  * the full CSP rationale and the `'unsafe-inline'` tradeoff.
  */
-export function getHttpSecurityHeaders(): readonly HttpSecurityHeader[] {
+export function getHttpSecurityHeaders(
+  options: SecurityHeaderOptions = {},
+): readonly HttpSecurityHeader[] {
   return [
-    { key: 'Content-Security-Policy', value: buildHttpCsp() },
+    { key: 'Content-Security-Policy', value: buildHttpCsp(options) },
     { key: 'X-Content-Type-Options', value: 'nosniff' },
     { key: 'X-Frame-Options', value: 'DENY' },
     { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
@@ -191,14 +232,16 @@ export function getHttpSecurityHeaders(): readonly HttpSecurityHeader[] {
  * form at all, so this genuinely provides less protection than the HTTP
  * shape. See module docs.
  */
-export function getMetaSecurityTags(): readonly MetaSecurityTag[] {
-  return [{ httpEquiv: 'Content-Security-Policy', content: buildMetaCsp() }]
+export function getMetaSecurityTags(
+  options: SecurityHeaderOptions = {},
+): readonly MetaSecurityTag[] {
+  return [{ httpEquiv: 'Content-Security-Policy', content: buildMetaCsp(options) }]
 }
 
 /**
  * Both shapes at once. Prefer the individual getters when you only need
  * one (e.g. `defineNextConfig` only ever needs `getHttpSecurityHeaders`).
  */
-export function securityHeaders(): SecurityHeaders {
-  return { http: getHttpSecurityHeaders(), meta: getMetaSecurityTags() }
+export function securityHeaders(options: SecurityHeaderOptions = {}): SecurityHeaders {
+  return { http: getHttpSecurityHeaders(options), meta: getMetaSecurityTags(options) }
 }

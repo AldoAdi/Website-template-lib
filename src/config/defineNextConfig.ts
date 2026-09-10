@@ -1,5 +1,5 @@
 import type { NextConfig } from 'next'
-import { getHttpSecurityHeaders } from '../security/headers'
+import { getHttpSecurityHeaders, type SecurityHeaderOptions } from '../security/headers'
 
 export type DeployTarget = 'vercel' | 'github-pages'
 
@@ -8,6 +8,8 @@ export interface DefineNextConfigOptions {
   /** GitHub Pages project-page repo name, e.g. "my-site" -> basePath "/my-site".
    *  Omit for a custom domain project page (root-served) — no basePath is emitted. */
   readonly repoName?: string
+  /** Extra origins for the CSP `connect-src` allowlist. See `SecurityHeaderOptions`. */
+  readonly connectSrc?: readonly string[]
 }
 
 const GITHUB_PAGES_TRAILING_SLASH = true
@@ -23,7 +25,9 @@ export function defineNextConfig(options: DefineNextConfigOptions): NextConfig {
     return buildGithubPagesConfig(options.repoName)
   }
 
-  return buildVercelConfig()
+  return buildVercelConfig(
+    options.connectSrc === undefined ? {} : { connectSrc: options.connectSrc },
+  )
 }
 
 const ALL_ROUTES_SOURCE = '/:path*'
@@ -35,13 +39,13 @@ const ALL_ROUTES_SOURCE = '/:path*'
  * (see `src/security/headers.ts`). Wiring `headers()` here is therefore
  * deliberately Vercel-only.
  */
-function buildVercelConfig(): NextConfig {
+function buildVercelConfig(headerOptions: SecurityHeaderOptions): NextConfig {
   return {
     headers: () =>
       Promise.resolve([
         {
           source: ALL_ROUTES_SOURCE,
-          headers: getHttpSecurityHeaders().map(({ key, value }) => ({ key, value })),
+          headers: getHttpSecurityHeaders(headerOptions).map(({ key, value }) => ({ key, value })),
         },
       ]),
   }

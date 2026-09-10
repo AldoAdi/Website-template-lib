@@ -16,23 +16,40 @@ export interface HeroProps {
   /** Heading tag rendered for `headline`. Defaults to `h1` -- override on any page where the Hero is not the source of the page's one `<h1>`. */
   readonly headingLevel?: HeadingLevel
   readonly subhead?: ReactNode
-  readonly primaryAction: HeroAction
+  /** Ignored when `primaryActionSlot` is given. */
+  readonly primaryAction?: HeroAction
+  /**
+   * Replaces the rendered primary action with a caller-supplied element,
+   * the same way `image` works.
+   *
+   * Exists because the primary hero action is usually the one click on the
+   * page worth measuring, and `primaryAction` renders a bare `<Link>` that
+   * records nothing. Pass a `BookingLink` (or any tracked anchor) here and
+   * style it with `HERO_PRIMARY_ACTION_CLASSES` so it matches.
+   */
+  readonly primaryActionSlot?: ReactNode
   readonly secondaryAction?: HeroAction
   /** Image slot -- the consumer supplies the `<img>` (or `next/image`) element, alt text included. The library never invents alt text. */
   readonly image?: ReactNode
   readonly className?: string
 }
 
-const PRIMARY_ACTION_CLASSES =
+/**
+ * Exported so a caller filling `primaryActionSlot` can match the button it
+ * replaces without copying the class string -- which would then drift the
+ * first time the hero is restyled.
+ */
+export const HERO_PRIMARY_ACTION_CLASSES =
   'bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md px-6 py-3 text-sm font-medium transition-colors'
 
-const SECONDARY_ACTION_CLASSES =
+export const HERO_SECONDARY_ACTION_CLASSES =
   'border-border text-foreground hover:bg-accent hover:text-accent-foreground inline-flex items-center justify-center rounded-md border px-6 py-3 text-sm font-medium transition-colors'
 
 /**
  * Above-the-fold introduction: optional eyebrow, headline, optional subhead,
- * a primary action plus an optional secondary action, and an optional image
- * slot. Composes `Section` (vertical rhythm) and `Container` (reading
+ * a primary action (either a `{ label, href }` pair or a caller-supplied
+ * element via `primaryActionSlot`) plus an optional secondary action, and an
+ * optional image slot. Composes `Section` (vertical rhythm) and `Container` (reading
  * width) rather than repeating that layout.
  *
  * `headingLevel` renders the actual tag for `headline` -- default `h1`,
@@ -45,6 +62,7 @@ export function Hero({
   headingLevel = 'h1',
   subhead,
   primaryAction,
+  primaryActionSlot,
   secondaryAction,
   image,
   className,
@@ -63,11 +81,14 @@ export function Hero({
           </HeadlineTag>
           {subhead ? <p className="text-muted-foreground text-lg text-balance">{subhead}</p> : null}
           <div className="flex flex-wrap gap-4">
-            <Link href={primaryAction.href} className={PRIMARY_ACTION_CLASSES}>
-              {primaryAction.label}
-            </Link>
+            {primaryActionSlot ??
+              (primaryAction ? (
+                <Link href={primaryAction.href} className={HERO_PRIMARY_ACTION_CLASSES}>
+                  {primaryAction.label}
+                </Link>
+              ) : null)}
             {secondaryAction ? (
-              <Link href={secondaryAction.href} className={SECONDARY_ACTION_CLASSES}>
+              <Link href={secondaryAction.href} className={HERO_SECONDARY_ACTION_CLASSES}>
                 {secondaryAction.label}
               </Link>
             ) : null}

@@ -14,6 +14,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./analytics": "./src/analytics/index.ts",
+    "./booking": "./src/booking/index.ts",
+    "./booking/server": "./src/booking/server/index.ts",
     "./theme": "./src/theme/index.ts",
     "./components": "./src/components/index.ts",
     "./seo": "./src/seo/index.ts",

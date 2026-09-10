@@ -1,4 +1,4 @@
-export { Hero } from './Hero'
+export { Hero, HERO_PRIMARY_ACTION_CLASSES, HERO_SECONDARY_ACTION_CLASSES } from './Hero'
 export type { HeroProps, HeroAction } from './Hero'
 export { CTA } from './CTA'
 export type { CTAProps, CTAAction } from './CTA'

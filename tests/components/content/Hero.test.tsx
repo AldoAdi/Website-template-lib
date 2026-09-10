@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, test } from 'vitest'
 import { cleanup, render, screen } from '@testing-library/react'
-import { Hero } from '../../../src/components/content/Hero'
+import {
+  Hero,
+  HERO_PRIMARY_ACTION_CLASSES,
+  HERO_SECONDARY_ACTION_CLASSES,
+} from '../../../src/components/content/Hero'
 import { findAxeViolations } from '../../axeHelpers'
 
 const PRIMARY_ACTION = { label: 'Get started', href: '/signup' }
@@ -73,5 +77,39 @@ describe('Hero', () => {
     const violations = await findAxeViolations(document.body)
 
     expect(violations).toEqual([])
+  })
+})
+
+describe('Hero primary action slot', () => {
+  test('renders a caller-supplied element in place of the primary action', () => {
+    render(<Hero headline="Headline" primaryActionSlot={<a href="/book">Book an appointment</a>} />)
+
+    expect(screen.getByRole('link', { name: 'Book an appointment' }).getAttribute('href')).toBe(
+      '/book',
+    )
+  })
+
+  test('the slot wins over primaryAction rather than rendering both', () => {
+    render(
+      <Hero
+        headline="Headline"
+        primaryAction={{ label: 'Ignored', href: '#ignored' }}
+        primaryActionSlot={<a href="/book">Book</a>}
+      />,
+    )
+
+    expect(screen.queryByRole('link', { name: 'Ignored' })).toBeNull()
+    expect(screen.getByRole('link', { name: 'Book' })).toBeDefined()
+  })
+
+  test('renders no primary action when neither is given', () => {
+    render(<Hero headline="Headline" secondaryAction={{ label: 'More', href: '#more' }} />)
+
+    expect(screen.getAllByRole('link')).toHaveLength(1)
+  })
+
+  test('exports the action classes so a slot can match the button it replaces', () => {
+    expect(HERO_PRIMARY_ACTION_CLASSES).toContain('bg-primary')
+    expect(HERO_SECONDARY_ACTION_CLASSES).toContain('border')
   })
 })
