@@ -37,9 +37,9 @@ One versioned library holding everything identical across many small websites, s
 
 ### Deliverables
 
-| Repo | Purpose |
-|---|---|
-| `Website-template-lib` | This spec. The shared library. |
+| Repo                       | Purpose                                                                                                                                                             |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Website-template-lib`     | This spec. The shared library.                                                                                                                                      |
 | `Website-template-starter` | Thin Next.js skeleton to clone per new site. Wires the lib, holds `theme.css`, `/public`, content, deploy config, and one working sample page. No logic of its own. |
 
 ### The sample page
@@ -66,13 +66,13 @@ This page is also the visual regression surface — it is what gets rendered on 
 
 Both must work from the same library code.
 
-| | Vercel (default) | GitHub Pages (prototypes) |
-|---|---|---|
-| Mode | Node server, SSR + ISR | `output: 'export'`, static only |
+|                  | Vercel (default)                                | GitHub Pages (prototypes)                                                          |
+| ---------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Mode             | Node server, SSR + ISR                          | `output: 'export'`, static only                                                    |
 | Security headers | Real HTTP headers via `next.config` `headers()` | `<meta http-equiv="Content-Security-Policy">` only — no `frame-ancestors`, no HSTS |
-| Images | `next/image` optimized | `images: { unoptimized: true }` |
-| Paths | root | `basePath` + `assetPrefix` = `/<repo>`, `trailingSlash: true` |
-| Forms | third-party endpoint | third-party endpoint (same) |
+| Images           | `next/image` optimized                          | `images: { unoptimized: true }`                                                    |
+| Paths            | root                                            | `basePath` + `assetPrefix` = `/<repo>`, `trailingSlash: true`                      |
+| Forms            | third-party endpoint                            | third-party endpoint (same)                                                        |
 
 Library exports one helper so a site picks a target with one line:
 
@@ -82,7 +82,7 @@ import { defineNextConfig } from '@aldoadi/website-template/config'
 
 export default defineNextConfig({
   target: process.env.DEPLOY_TARGET === 'github-pages' ? 'github-pages' : 'vercel',
-  repoName: 'my-site',   // only used by github-pages
+  repoName: 'my-site', // only used by github-pages
 })
 ```
 
@@ -94,25 +94,25 @@ export default defineNextConfig({
 
 Versions verified against npm on 2026-09-06. All are current `latest`.
 
-| Concern | Package | Version |
-|---|---|---|
-| Framework (peer) | `next` | `^16.3.4` |
-| UI (peer) | `react`, `react-dom` | `^19.2.8` |
-| Language (dev) | `typescript` | `~6.0.3` — **not 7.x**, see note |
-| Styling (peer) | `tailwindcss` | `^4.3.3` |
-| Analytics loader | `@next/third-parties` | `^16.3.4` |
-| Dark mode | `next-themes` | `^0.4.6` |
-| Validation | `zod` | `^4.5.4` |
-| Test | `vitest` | `^5.0.0` |
-| Coverage | `@vitest/coverage-v8` | `^5.0.0` |
-| DOM env | `jsdom` | `^30.0.1` |
-| Component test | `@testing-library/react` | `^16.3.3` |
-| Vite plugin (dev) | `@vitejs/plugin-react` | `^6.1.1` |
-| Lint | `eslint` | `^10.10.0` |
-| Lint (TS rules) | `typescript-eslint` | `^8.69.0` |
-| Lint (Next rules) | `eslint-config-next` | `^16.3.4` |
-| Format | `prettier` | `^3.9.6` |
-| Node engine | | `>=22.12.0` |
+| Concern           | Package                  | Version                          |
+| ----------------- | ------------------------ | -------------------------------- |
+| Framework (peer)  | `next`                   | `^16.3.4`                        |
+| UI (peer)         | `react`, `react-dom`     | `^19.2.8`                        |
+| Language (dev)    | `typescript`             | `~6.0.3` — **not 7.x**, see note |
+| Styling (peer)    | `tailwindcss`            | `^4.3.3`                         |
+| Analytics loader  | `@next/third-parties`    | `^16.3.4`                        |
+| Dark mode         | `next-themes`            | `^0.4.6`                         |
+| Validation        | `zod`                    | `^4.5.4`                         |
+| Test              | `vitest`                 | `^5.0.0`                         |
+| Coverage          | `@vitest/coverage-v8`    | `^5.0.0`                         |
+| DOM env           | `jsdom`                  | `^30.0.1`                        |
+| Component test    | `@testing-library/react` | `^16.3.3`                        |
+| Vite plugin (dev) | `@vitejs/plugin-react`   | `^6.1.1`                         |
+| Lint              | `eslint`                 | `^10.10.0`                       |
+| Lint (TS rules)   | `typescript-eslint`      | `^8.69.0`                        |
+| Lint (Next rules) | `eslint-config-next`     | `^16.3.4`                        |
+| Format            | `prettier`               | `^3.9.6`                         |
+| Node engine       |                          | `>=22.12.0`                      |
 
 Node floor is **22.12**, set by Vitest 5 (`^22.12.0 \|\| ^24.0.0 \|\| >=26.0.0`). Next itself only needs 20.9.
 
@@ -121,6 +121,7 @@ Node floor is **22.12**, set by Vitest 5 (`^22.12.0 \|\| ^24.0.0 \|\| >=26.0.0`)
 `next`, `react`, `react-dom`, `tailwindcss`, `@next/third-parties`, `next-themes`, `zod` are **peerDependencies** — the library bundles none of them, so consumers get exactly one copy.
 
 **Deliberately not depending on:**
+
 - `firebase` — not needed for GA4 on a website. <!-- ponytail: add when a site needs Auth or Firestore -->
 - `@web3forms/react` / `@formspree/react` — a `fetch` POST is 5 lines.
 - Any analytics SDK — `@next/third-parties` loads gtag; we only wrap consent.
@@ -266,11 +267,11 @@ Rules:
 
 Levels:
 
-| Level | Covers | Example |
-|---|---|---|
-| Unit | Consent gate, validators, honeypot, metadata builders, `defineNextConfig` output | `security/validate.test.ts` |
-| Integration | Consent → queue → flush → gtag fan-out, form POST against a `fetch` stub | `analytics/index.test.ts` |
-| Component | Render + a11y + interaction | `consent/CookieBanner.test.tsx` |
+| Level       | Covers                                                                           | Example                         |
+| ----------- | -------------------------------------------------------------------------------- | ------------------------------- |
+| Unit        | Consent gate, validators, honeypot, metadata builders, `defineNextConfig` output | `security/validate.test.ts`     |
+| Integration | Consent → queue → flush → gtag fan-out, form POST against a `fetch` stub         | `analytics/index.test.ts`       |
+| Component   | Render + a11y + interaction                                                      | `consent/CookieBanner.test.tsx` |
 
 **No E2E in this repo.** <!-- ponytail: E2E needs a running site; it belongs in the starter repo. Add a Playwright fixture here only if a component regression slips through three times. -->
 
@@ -339,3 +340,80 @@ Levels:
 ## Open Questions
 
 None blocking. Ready to plan.
+
+---
+
+## Amendment: the booking module (v0.2)
+
+Added after a client need the v1 scope did not anticipate: a practice whose
+booking CTA hands off to a third-party scheduler cannot fire any tag it owns on
+the conversion, so its paid search spend is unattributable.
+
+This touches three "Ask first" boundaries. Recording the answers here.
+
+**1. "Adding anything that requires a Node server (breaks GitHub Pages)."**
+
+The client half does not. `/book` is a static page: attribution parsing, cookie
+minting, event emission and the redirect are all client-side, so
+Assumption 4 holds unchanged and the starter still deploys to Pages.
+
+The optional server half — an ingest route handler for a site that wants its own
+database — lives behind a **separate `./booking/server` subpath**. A static build
+never imports it, and it takes a `Request` and returns a `Response` rather than
+importing from `next`, so it stays testable without a server. The floor is now
+precisely: _the core is static; `./booking/server` is opt-in and Node-only._
+
+**2. "Adding a new analytics provider or backend."**
+
+No new provider. `createGaSink` delegates to the existing `track()`, inheriting
+the consent gate and the pre-consent queue. `createHttpSink` targets whatever
+first-party endpoint the consuming site chooses; the library ships no client
+for it.
+
+**3. "Adding any runtime dependency."**
+
+None added. `BookingStore` is an interface; the Postgres adapter is ~15 lines and
+belongs in the consuming site, which keeps the database vendor out of the library
+and off every other site's dependency tree.
+
+### The consent decision
+
+`createHttpSink` is consent-gated by default, matching "no beacon fires before
+opt-in". The `requiresConsent: false` escape hatch exists because an anonymous,
+no-PII, first-party endpoint is treated differently under different regimes. It
+is a legal decision, not a technical one, and whoever sets it should say why at
+the call site.
+
+`BookingRedirect` never gates the _redirect_ on consent. Someone who rejected the
+banner still came to book an appointment.
+
+### The PII line
+
+`BookingEvent` has no field for a name, email, phone, or reason for visit, and
+`createIngestHandler` rejects any payload carrying a PII-shaped key at any depth.
+This is deliberate and load-bearing: it is what keeps a US healthcare practice's
+website analytics out of HIPAA scope. Crossing that line is not a code change,
+it is a different project — one needing a BAA-capable host, consent copy, and a
+retention policy.
+
+### Known limit
+
+The funnel measures booking **intent**. What happens on the scheduler's domain is
+cross-origin and unobservable; an iframe would not change that.
+`booking_confirmed` only becomes real if the vendor supports a post-booking
+redirect back to a route rendering `BookingConfirmed`. Until then, every number
+past `booking_handoff` is a modelled estimate and should be labelled as one.
+
+### Public API added
+
+`./booking` — `BookingLink`, `BookingRedirect`, `BookingConfirmed`,
+`recordBookingStep`, `buildBookingUrl`, `parseAttribution`, `recordAttribution`,
+`getAttribution`, `getVisitorId`, `getSessionId`, `createGaSink`,
+`createHttpSink`, `createMemorySink`, `emitBookingEvent`.
+
+`./booking/server` — `createIngestHandler`, `createMemoryBookingStore`,
+`BookingStore`.
+
+Changed: `getHttpSecurityHeaders`, `getMetaSecurityTags`, `securityHeaders` and
+`defineNextConfig` take an optional `connectSrc` allowlist extension. Additive
+and backwards compatible, but a public-API change — tag a minor version.

@@ -148,3 +148,49 @@ describe('style-src', () => {
     expect(styleSrc).toBe("style-src 'self' 'unsafe-inline'")
   })
 })
+
+describe('connect-src allowlist extension', () => {
+  function connectSrcOf(csp: string): string {
+    return csp.split('; ').find((directive) => directive.startsWith('connect-src ')) ?? ''
+  }
+
+  test("defaults to the library's own origins only", () => {
+    const csp = getHttpSecurityHeaders().find((h) => h.key === 'Content-Security-Policy')?.value
+
+    expect(connectSrcOf(csp ?? '')).toBe(
+      "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://api.web3forms.com",
+    )
+  })
+
+  test('appends a caller-supplied ingest origin', () => {
+    const csp = getHttpSecurityHeaders({
+      connectSrc: ['https://ingest.example'],
+    }).find((h) => h.key === 'Content-Security-Policy')?.value
+
+    expect(connectSrcOf(csp ?? '')).toContain('https://ingest.example')
+  })
+
+  test('extends the meta shape the same way, so a static site is not left blocked', () => {
+    const [tag] = getMetaSecurityTags({ connectSrc: ['https://ingest.example'] })
+
+    expect(tag?.content).toContain('https://ingest.example')
+  })
+
+  test('drops an origin containing whitespace or a semicolon, which would forge a directive', () => {
+    const csp = getHttpSecurityHeaders({
+      connectSrc: ['https://ok.example', "https://evil.example; script-src 'unsafe-eval'", '  '],
+    }).find((h) => h.key === 'Content-Security-Policy')?.value
+
+    expect(csp).toContain('https://ok.example')
+    expect(csp).not.toContain('unsafe-eval')
+  })
+
+  test('securityHeaders threads the option into both shapes', () => {
+    const { http, meta } = securityHeaders({ connectSrc: ['https://ingest.example'] })
+
+    expect(http.find((h) => h.key === 'Content-Security-Policy')?.value).toContain(
+      'https://ingest.example',
+    )
+    expect(meta[0]?.content).toContain('https://ingest.example')
+  })
+})
