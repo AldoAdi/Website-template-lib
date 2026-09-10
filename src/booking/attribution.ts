@@ -110,14 +110,38 @@ export function parseAttribution(input: ParseAttributionInput): Attribution {
 }
 
 /**
- * True when a parsed attribution carries nothing but its timestamp -- a
- * direct visit with no campaign and no usable referrer.
+ * Fields that describe *where the visitor came from*. Everything else on an
+ * `Attribution` is bookkeeping about the visit itself.
  *
- * This is what stops an internal click-through from erasing the campaign
- * that actually brought the visitor in: an empty last-touch is not written.
+ * `landingPath` and `capturedAt` are deliberately not here. Every parse
+ * produces both, so counting them as attribution would make an internal
+ * click-through look like a fresh campaign -- and overwrite the real one.
+ */
+const ATTRIBUTION_FIELDS: readonly (keyof Attribution)[] = [
+  'utmSource',
+  'utmMedium',
+  'utmCampaign',
+  'utmTerm',
+  'utmContent',
+  'gclid',
+  'wbraid',
+  'gbraid',
+  'fbclid',
+  'msclkid',
+  'referrer',
+]
+
+/**
+ * True when a parsed attribution says nothing about where the visitor came
+ * from -- a direct visit, or navigation within the site.
+ *
+ * This is what stops a click from the homepage to `/book` from erasing the
+ * ad click that produced it. `/book` carries no query string and a
+ * same-origin referrer, so every field that matters is absent; only the
+ * landing path and a timestamp remain, and neither is attribution.
  */
 export function isEmptyAttribution(attribution: Attribution): boolean {
-  return Object.keys(attribution).every((key) => key === 'capturedAt')
+  return ATTRIBUTION_FIELDS.every((field) => attribution[field] === undefined)
 }
 
 function readStored(): StoredAttribution | null {

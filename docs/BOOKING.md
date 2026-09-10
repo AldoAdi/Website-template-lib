@@ -107,6 +107,16 @@ real conversion to bid against.
 If the answer is no, say so in your reporting. A modelled estimate that gets
 presented as an observation is how ad budgets get misallocated.
 
+## Proving it works
+
+See [VERIFYING-TRACKING.md](./VERIFYING-TRACKING.md) — the on-page inspector,
+GTM Preview, GA4 DebugView and the Ads import, in the order that tells you
+whose fault a failure is.
+
+The short version: append `?debug=tracking` to any page and a panel shows every
+event the library sent, its full payload, the transport that carried it, and
+whether consent held it back.
+
 ## Adding your own database
 
 Optional. GA4 alone answers most questions; a database answers the ones GA4

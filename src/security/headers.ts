@@ -140,6 +140,21 @@ export interface SecurityHeaderOptions {
    * `'self'` and needs no entry.
    */
   readonly connectSrc?: readonly string[]
+  /**
+   * Extra origins appended to `script-src`.
+   *
+   * A GTM container is a script loader: every tag a marketer adds inside it
+   * pulls from some origin the library never anticipated. A CSP-blocked tag
+   * fails silently, which is indistinguishable from "the tag is
+   * misconfigured" -- so this is usually the first thing to check when a
+   * container works in Preview but not on the live site.
+   */
+  readonly scriptSrc?: readonly string[]
+  /**
+   * Extra origins appended to `img-src`. Conversion pixels (Google Ads,
+   * Meta) load this way.
+   */
+  readonly imgSrc?: readonly string[]
 }
 
 /**
@@ -148,7 +163,7 @@ export interface SecurityHeaderOptions {
  * them is safer than emitting a policy that reads as valid but is not the
  * one that was asked for.
  */
-function normalizeConnectSrc(origins: readonly string[] | undefined): readonly string[] {
+function normalizeOrigins(origins: readonly string[] | undefined): readonly string[] {
   if (origins === undefined) return []
 
   return origins
@@ -166,15 +181,26 @@ function buildBaseCspDirectives(options: SecurityHeaderOptions = {}): readonly s
     "'self'",
     GOOGLE_ANALYTICS_ORIGIN,
     GOOGLE_ANALYTICS_WILDCARD,
+    // GTM's container fetch and its consent/config pings both go here.
+    GOOGLE_TAG_MANAGER_ORIGIN,
     WEB3FORMS_ORIGIN,
-    ...normalizeConnectSrc(options.connectSrc),
+    ...normalizeOrigins(options.connectSrc),
   ].join(' ')
+
+  const scriptSrc = [
+    "'self'",
+    "'unsafe-inline'",
+    GOOGLE_TAG_MANAGER_ORIGIN,
+    ...normalizeOrigins(options.scriptSrc),
+  ].join(' ')
+
+  const imgSrc = ["'self'", 'data:', ...normalizeOrigins(options.imgSrc)].join(' ')
 
   return [
     "default-src 'self'",
-    `script-src 'self' 'unsafe-inline' ${GOOGLE_TAG_MANAGER_ORIGIN}`,
+    `script-src ${scriptSrc}`,
     `connect-src ${connectSrc}`,
-    "img-src 'self' data:",
+    `img-src ${imgSrc}`,
     // 'unsafe-inline' is required here for the same structural reason as
     // script-src, and it was found by loading the built page in a real
     // browser -- not by reading the emitted HTML, which contains no <style>

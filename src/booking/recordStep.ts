@@ -18,8 +18,13 @@ export interface RecordStepOptions {
   readonly location?: string
   /**
    * Capture attribution from the current URL before emitting, rather than
-   * only reading what is already stored. Set on the booking route, which is
-   * where an ad click actually lands.
+   * only reading what is already stored. Defaults to `true`.
+   *
+   * On by default because an ad far more often lands on the homepage than
+   * on `/book` directly, and a capture that only ran on the booking route
+   * would miss every one of those clicks. Capturing everywhere is safe:
+   * a URL with no campaign parameters parses as empty and leaves the
+   * stored touches untouched (see `isEmptyAttribution`).
    */
   readonly captureFromUrl?: boolean
 }
@@ -30,7 +35,7 @@ export function recordBookingStep(
   options: RecordStepOptions = {},
 ): BookingEvent {
   const touches =
-    options.captureFromUrl === true && typeof window !== 'undefined'
+    options.captureFromUrl !== false && typeof window !== 'undefined'
       ? recordAttribution(
           parseAttribution({
             search: window.location.search,

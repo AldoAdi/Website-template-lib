@@ -44,6 +44,8 @@ export type { BuildBookingUrlInput } from './buildBookingUrl'
 export { recordBookingStep } from './recordStep'
 export type { RecordStepOptions } from './recordStep'
 
+export { AttributionCapture } from './AttributionCapture'
+
 export { BookingLink } from './BookingLink'
 export type { BookingLinkProps } from './BookingLink'
 

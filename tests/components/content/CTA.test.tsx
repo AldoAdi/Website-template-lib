@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from 'vitest'
 import { cleanup, render, screen } from '@testing-library/react'
-import { CTA } from '../../../src/components/content/CTA'
+import { CTA, CTA_ACTION_CLASSES } from '../../../src/components/content/CTA'
 import { findAxeViolations } from '../../axeHelpers'
 
 const ACTION = { label: 'Talk to sales', href: '/contact' }
@@ -58,5 +58,36 @@ describe('CTA', () => {
     const violations = await findAxeViolations(document.body)
 
     expect(violations).toEqual([])
+  })
+})
+
+describe('CTA action slot', () => {
+  test('renders a caller-supplied element in place of the action', () => {
+    render(<CTA heading="Heading" body="Body" actionSlot={<a href="/book">Book</a>} />)
+
+    expect(screen.getByRole('link', { name: 'Book' }).getAttribute('href')).toBe('/book')
+  })
+
+  test('the slot wins over action rather than rendering both', () => {
+    render(
+      <CTA
+        heading="Heading"
+        body="Body"
+        action={{ label: 'Ignored', href: '#ignored' }}
+        actionSlot={<a href="/book">Book</a>}
+      />,
+    )
+
+    expect(screen.queryByRole('link', { name: 'Ignored' })).toBeNull()
+  })
+
+  test('renders no action when neither is given', () => {
+    render(<CTA heading="Heading" body="Body" />)
+
+    expect(screen.queryByRole('link')).toBeNull()
+  })
+
+  test('exports the action classes so a slot can match the button it replaces', () => {
+    expect(CTA_ACTION_CLASSES).toContain('rounded-md')
   })
 })
