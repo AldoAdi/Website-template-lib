@@ -54,7 +54,7 @@ describe('recordBookingStep', () => {
     expect('location' in recordBookingStep('booking_view', [sink])).toBe(false)
   })
 
-  test('reads stored attribution without capturing from the url by default', () => {
+  test('reads stored attribution when the current url adds nothing', () => {
     recordAttribution({ utmSource: 'google', capturedAt: 1 })
     const sink = createMemorySink()
 
@@ -64,11 +64,11 @@ describe('recordBookingStep', () => {
     expect(event.lastTouch.utmSource).toBe('google')
   })
 
-  test('captures fresh attribution from the url when asked', () => {
+  test('captures fresh attribution from the url by default', () => {
     window.history.replaceState({}, '', '/book?utm_source=google&gclid=XYZ')
     const sink = createMemorySink()
 
-    const event = recordBookingStep('booking_view', [sink], { captureFromUrl: true })
+    const event = recordBookingStep('booking_view', [sink])
 
     expect(event.lastTouch.utmSource).toBe('google')
     expect(event.lastTouch.gclid).toBe('XYZ')
@@ -76,12 +76,17 @@ describe('recordBookingStep', () => {
     window.history.replaceState({}, '', '/')
   })
 
-  test('carries empty touches when nothing has ever been captured', () => {
+  test('carries no campaign fields when the visit is direct', () => {
     const sink = createMemorySink()
 
     const event = recordBookingStep('cta_click', [sink])
 
-    expect(event.firstTouch).toEqual({})
-    expect(event.lastTouch).toEqual({})
+    // Not an empty object: capture is on by default, so a direct visit still
+    // records the landing path and a timestamp. What must be absent is any
+    // claim about where the visitor came from.
+    expect(event.firstTouch.utmSource).toBeUndefined()
+    expect(event.firstTouch.gclid).toBeUndefined()
+    expect(event.lastTouch.utmSource).toBeUndefined()
+    expect(event.lastTouch.referrer).toBeUndefined()
   })
 })

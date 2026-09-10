@@ -107,8 +107,20 @@ describe('isEmptyAttribution', () => {
     expect(isEmptyAttribution({ capturedAt: NOW })).toBe(true)
   })
 
-  test('any real field makes it non-empty', () => {
+  test('a landing path alone counts as empty -- it is not attribution', () => {
+    expect(isEmptyAttribution({ capturedAt: NOW, landingPath: '/book' })).toBe(true)
+  })
+
+  test('any campaign field makes it non-empty', () => {
     expect(isEmptyAttribution({ capturedAt: NOW, utmSource: 'google' })).toBe(false)
+  })
+
+  test('a click id alone makes it non-empty', () => {
+    expect(isEmptyAttribution({ capturedAt: NOW, gclid: 'ABC' })).toBe(false)
+  })
+
+  test('a cross-origin referrer alone makes it non-empty', () => {
+    expect(isEmptyAttribution({ capturedAt: NOW, referrer: 'https://www.google.com/' })).toBe(false)
   })
 })
 
@@ -127,6 +139,25 @@ describe('recordAttribution', () => {
     expect(stored.firstTouch.utmSource).toBe('google')
     expect(stored.firstTouch.utmCampaign).toBe('implants')
     expect(stored.lastTouch.utmSource).toBe('facebook')
+  })
+
+  // The regression this exists for: an ad lands on the homepage, the
+  // visitor clicks through to /book, and /book -- which carries no query
+  // string -- overwrites last touch with a landingPath-only record, erasing
+  // the gclid that paid for the visit.
+  test('navigating to another page does not erase the campaign that brought them in', () => {
+    recordAttribution({
+      utmSource: 'google',
+      utmCampaign: 'implants',
+      gclid: 'ABC',
+      capturedAt: NOW,
+    })
+
+    const stored = recordAttribution({ landingPath: '/book', capturedAt: NOW + 1000 })
+
+    expect(stored.lastTouch.gclid).toBe('ABC')
+    expect(stored.lastTouch.utmCampaign).toBe('implants')
+    expect(stored.firstTouch.gclid).toBe('ABC')
   })
 
   test('an empty attribution leaves both touches intact', () => {
