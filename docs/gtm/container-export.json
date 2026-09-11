@@ -28,7 +28,7 @@
         "notes": "Loads the Google tag and sends page_view. If this container ALREADY has a Google tag or GA4 Configuration tag, delete this one after importing -- two of them double-counts every hit.",
         "parameter": [
           {
-            "type": "template",
+            "type": "TEMPLATE",
             "key": "tagId",
             "value": "{{GA4 Measurement ID}}"
           }
@@ -47,149 +47,149 @@
         "type": "gaawe",
         "parameter": [
           {
-            "type": "boolean",
+            "type": "BOOLEAN",
             "key": "sendEcommerceData",
             "value": "false"
           },
           {
-            "type": "template",
+            "type": "TEMPLATE",
             "key": "eventName",
             "value": "cta_click"
           },
           {
-            "type": "list",
+            "type": "LIST",
             "key": "eventSettingsTable",
             "list": [
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "bk_session_id"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - session_id}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "bk_visitor_id"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - visitor_id}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "cta_location"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - cta_location}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "booking_step"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - booking_step}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "gclid"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - last_gclid}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "campaign"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - last_utmCampaign}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "source"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - last_utmSource}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "medium"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - last_utmMedium}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "first_campaign"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - first_utmCampaign}}"
                   }
@@ -198,7 +198,7 @@
             ]
           },
           {
-            "type": "template",
+            "type": "TEMPLATE",
             "key": "measurementIdOverride",
             "value": "{{GA4 Measurement ID}}"
           }
@@ -217,149 +217,149 @@
         "type": "gaawe",
         "parameter": [
           {
-            "type": "boolean",
+            "type": "BOOLEAN",
             "key": "sendEcommerceData",
             "value": "false"
           },
           {
-            "type": "template",
+            "type": "TEMPLATE",
             "key": "eventName",
             "value": "booking_view"
           },
           {
-            "type": "list",
+            "type": "LIST",
             "key": "eventSettingsTable",
             "list": [
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "bk_session_id"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - session_id}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "bk_visitor_id"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - visitor_id}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "cta_location"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - cta_location}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "booking_step"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - booking_step}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "gclid"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - last_gclid}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "campaign"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - last_utmCampaign}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "source"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - last_utmSource}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "medium"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - last_utmMedium}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "first_campaign"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - first_utmCampaign}}"
                   }
@@ -368,7 +368,7 @@
             ]
           },
           {
-            "type": "template",
+            "type": "TEMPLATE",
             "key": "measurementIdOverride",
             "value": "{{GA4 Measurement ID}}"
           }
@@ -387,149 +387,149 @@
         "type": "gaawe",
         "parameter": [
           {
-            "type": "boolean",
+            "type": "BOOLEAN",
             "key": "sendEcommerceData",
             "value": "false"
           },
           {
-            "type": "template",
+            "type": "TEMPLATE",
             "key": "eventName",
             "value": "booking_handoff"
           },
           {
-            "type": "list",
+            "type": "LIST",
             "key": "eventSettingsTable",
             "list": [
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "bk_session_id"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - session_id}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "bk_visitor_id"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - visitor_id}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "cta_location"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - cta_location}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "booking_step"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - booking_step}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "gclid"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - last_gclid}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "campaign"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - last_utmCampaign}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "source"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - last_utmSource}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "medium"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - last_utmMedium}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "first_campaign"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - first_utmCampaign}}"
                   }
@@ -538,7 +538,7 @@
             ]
           },
           {
-            "type": "template",
+            "type": "TEMPLATE",
             "key": "measurementIdOverride",
             "value": "{{GA4 Measurement ID}}"
           }
@@ -557,149 +557,149 @@
         "type": "gaawe",
         "parameter": [
           {
-            "type": "boolean",
+            "type": "BOOLEAN",
             "key": "sendEcommerceData",
             "value": "false"
           },
           {
-            "type": "template",
+            "type": "TEMPLATE",
             "key": "eventName",
             "value": "booking_confirmed"
           },
           {
-            "type": "list",
+            "type": "LIST",
             "key": "eventSettingsTable",
             "list": [
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "bk_session_id"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - session_id}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "bk_visitor_id"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - visitor_id}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "cta_location"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - cta_location}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "booking_step"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - booking_step}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "gclid"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - last_gclid}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "campaign"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - last_utmCampaign}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "source"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - last_utmSource}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "medium"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - last_utmMedium}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "first_campaign"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - first_utmCampaign}}"
                   }
@@ -708,7 +708,7 @@
             ]
           },
           {
-            "type": "template",
+            "type": "TEMPLATE",
             "key": "measurementIdOverride",
             "value": "{{GA4 Measurement ID}}"
           }
@@ -727,149 +727,149 @@
         "type": "gaawe",
         "parameter": [
           {
-            "type": "boolean",
+            "type": "BOOLEAN",
             "key": "sendEcommerceData",
             "value": "false"
           },
           {
-            "type": "template",
+            "type": "TEMPLATE",
             "key": "eventName",
             "value": "call_click"
           },
           {
-            "type": "list",
+            "type": "LIST",
             "key": "eventSettingsTable",
             "list": [
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "bk_session_id"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - session_id}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "bk_visitor_id"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - visitor_id}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "cta_location"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - cta_location}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "booking_step"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - booking_step}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "gclid"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - last_gclid}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "campaign"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - last_utmCampaign}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "source"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - last_utmSource}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "medium"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - last_utmMedium}}"
                   }
                 ]
               },
               {
-                "type": "map",
+                "type": "MAP",
                 "map": [
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameter",
                     "value": "first_campaign"
                   },
                   {
-                    "type": "template",
+                    "type": "TEMPLATE",
                     "key": "parameterValue",
                     "value": "{{dlv - first_utmCampaign}}"
                   }
@@ -878,7 +878,7 @@
             ]
           },
           {
-            "type": "template",
+            "type": "TEMPLATE",
             "key": "measurementIdOverride",
             "value": "{{GA4 Measurement ID}}"
           }
@@ -902,12 +902,12 @@
             "type": "EQUALS",
             "parameter": [
               {
-                "type": "template",
+                "type": "TEMPLATE",
                 "key": "arg0",
                 "value": "{{_event}}"
               },
               {
-                "type": "template",
+                "type": "TEMPLATE",
                 "key": "arg1",
                 "value": "cta_click"
               }
@@ -927,12 +927,12 @@
             "type": "EQUALS",
             "parameter": [
               {
-                "type": "template",
+                "type": "TEMPLATE",
                 "key": "arg0",
                 "value": "{{_event}}"
               },
               {
-                "type": "template",
+                "type": "TEMPLATE",
                 "key": "arg1",
                 "value": "booking_view"
               }
@@ -952,12 +952,12 @@
             "type": "EQUALS",
             "parameter": [
               {
-                "type": "template",
+                "type": "TEMPLATE",
                 "key": "arg0",
                 "value": "{{_event}}"
               },
               {
-                "type": "template",
+                "type": "TEMPLATE",
                 "key": "arg1",
                 "value": "booking_handoff"
               }
@@ -977,12 +977,12 @@
             "type": "EQUALS",
             "parameter": [
               {
-                "type": "template",
+                "type": "TEMPLATE",
                 "key": "arg0",
                 "value": "{{_event}}"
               },
               {
-                "type": "template",
+                "type": "TEMPLATE",
                 "key": "arg1",
                 "value": "booking_confirmed"
               }
@@ -1002,12 +1002,12 @@
             "type": "EQUALS",
             "parameter": [
               {
-                "type": "template",
+                "type": "TEMPLATE",
                 "key": "arg0",
                 "value": "{{_event}}"
               },
               {
-                "type": "template",
+                "type": "TEMPLATE",
                 "key": "arg1",
                 "value": "call_click"
               }
@@ -1026,17 +1026,17 @@
         "type": "v",
         "parameter": [
           {
-            "type": "integer",
+            "type": "INTEGER",
             "key": "dataLayerVersion",
             "value": "2"
           },
           {
-            "type": "boolean",
+            "type": "BOOLEAN",
             "key": "setDefaultValue",
             "value": "false"
           },
           {
-            "type": "template",
+            "type": "TEMPLATE",
             "key": "name",
             "value": "session_id"
           }
@@ -1051,17 +1051,17 @@
         "type": "v",
         "parameter": [
           {
-            "type": "integer",
+            "type": "INTEGER",
             "key": "dataLayerVersion",
             "value": "2"
           },
           {
-            "type": "boolean",
+            "type": "BOOLEAN",
             "key": "setDefaultValue",
             "value": "false"
           },
           {
-            "type": "template",
+            "type": "TEMPLATE",
             "key": "name",
             "value": "visitor_id"
           }
@@ -1076,17 +1076,17 @@
         "type": "v",
         "parameter": [
           {
-            "type": "integer",
+            "type": "INTEGER",
             "key": "dataLayerVersion",
             "value": "2"
           },
           {
-            "type": "boolean",
+            "type": "BOOLEAN",
             "key": "setDefaultValue",
             "value": "false"
           },
           {
-            "type": "template",
+            "type": "TEMPLATE",
             "key": "name",
             "value": "cta_location"
           }
@@ -1101,17 +1101,17 @@
         "type": "v",
         "parameter": [
           {
-            "type": "integer",
+            "type": "INTEGER",
             "key": "dataLayerVersion",
             "value": "2"
           },
           {
-            "type": "boolean",
+            "type": "BOOLEAN",
             "key": "setDefaultValue",
             "value": "false"
           },
           {
-            "type": "template",
+            "type": "TEMPLATE",
             "key": "name",
             "value": "booking_step"
           }
@@ -1126,17 +1126,17 @@
         "type": "v",
         "parameter": [
           {
-            "type": "integer",
+            "type": "INTEGER",
             "key": "dataLayerVersion",
             "value": "2"
           },
           {
-            "type": "boolean",
+            "type": "BOOLEAN",
             "key": "setDefaultValue",
             "value": "false"
           },
           {
-            "type": "template",
+            "type": "TEMPLATE",
             "key": "name",
             "value": "last_gclid"
           }
@@ -1151,17 +1151,17 @@
         "type": "v",
         "parameter": [
           {
-            "type": "integer",
+            "type": "INTEGER",
             "key": "dataLayerVersion",
             "value": "2"
           },
           {
-            "type": "boolean",
+            "type": "BOOLEAN",
             "key": "setDefaultValue",
             "value": "false"
           },
           {
-            "type": "template",
+            "type": "TEMPLATE",
             "key": "name",
             "value": "last_utmCampaign"
           }
@@ -1176,17 +1176,17 @@
         "type": "v",
         "parameter": [
           {
-            "type": "integer",
+            "type": "INTEGER",
             "key": "dataLayerVersion",
             "value": "2"
           },
           {
-            "type": "boolean",
+            "type": "BOOLEAN",
             "key": "setDefaultValue",
             "value": "false"
           },
           {
-            "type": "template",
+            "type": "TEMPLATE",
             "key": "name",
             "value": "last_utmSource"
           }
@@ -1201,17 +1201,17 @@
         "type": "v",
         "parameter": [
           {
-            "type": "integer",
+            "type": "INTEGER",
             "key": "dataLayerVersion",
             "value": "2"
           },
           {
-            "type": "boolean",
+            "type": "BOOLEAN",
             "key": "setDefaultValue",
             "value": "false"
           },
           {
-            "type": "template",
+            "type": "TEMPLATE",
             "key": "name",
             "value": "last_utmMedium"
           }
@@ -1226,17 +1226,17 @@
         "type": "v",
         "parameter": [
           {
-            "type": "integer",
+            "type": "INTEGER",
             "key": "dataLayerVersion",
             "value": "2"
           },
           {
-            "type": "boolean",
+            "type": "BOOLEAN",
             "key": "setDefaultValue",
             "value": "false"
           },
           {
-            "type": "template",
+            "type": "TEMPLATE",
             "key": "name",
             "value": "first_utmCampaign"
           }
@@ -1252,7 +1252,7 @@
         "notes": "The ONLY field you need to edit after importing. Replace with your GA4 Measurement ID (G-XXXXXXXXXX).",
         "parameter": [
           {
-            "type": "template",
+            "type": "TEMPLATE",
             "key": "value",
             "value": "G-XXXXXXXXXX"
           }
