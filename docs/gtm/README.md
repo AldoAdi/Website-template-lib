@@ -62,8 +62,8 @@ placement or campaign without going back into GTM:
 
 | GA4 parameter    | dataLayer key       |
 | ---------------- | ------------------- |
-| `session_id`     | `session_id`        |
-| `visitor_id`     | `visitor_id`        |
+| `bk_session_id`  | `session_id`        |
+| `bk_visitor_id`  | `visitor_id`        |
 | `cta_location`   | `cta_location`      |
 | `booking_step`   | `booking_step`      |
 | `gclid`          | `last_gclid`        |
@@ -78,6 +78,13 @@ than carried through, because GA4 dimension names are case-sensitive and
 `last_utmCampaign` is an unpleasant thing to find in a report two years from
 now.
 
+**The two ids carry a `bk_` prefix, and that is not cosmetic.** `session_id` is
+a _reserved_ GA4 parameter name — GA4 attaches its own to every event — so a
+parameter called `session_id` collides with a built-in and GA4 refuses to
+register it as a custom dimension at all. `visitor_id` is prefixed alongside it
+for symmetry, and because a bare id is exactly the sort of name a future
+reservation takes next.
+
 ## Then GA4, and this part is not retroactive
 
 GA4 → **Admin** → **Custom definitions** → **Create custom dimension**, scope
@@ -85,7 +92,6 @@ GA4 → **Admin** → **Custom definitions** → **Create custom dimension**, sc
 
 | Dimension name | Event parameter |
 | -------------- | --------------- |
-| Session ID     | `session_id`    |
 | CTA location   | `cta_location`  |
 | Campaign       | `campaign`      |
 | Booking step   | `booking_step`  |
@@ -95,6 +101,15 @@ parameter is collected and then discarded from reporting: it is never queryable,
 and registering it later does not reach back. Every event that arrived before
 the definition existed is gone for reporting purposes, permanently.
 
+**Deliberately not registered: `bk_session_id` and `bk_visitor_id`.** Both are
+unique per session or per browser, and a custom dimension with unbounded
+cardinality is actively harmful in GA4 — past the cardinality limit, rows
+collapse into a single `(other)` bucket and take the _useful_ dimensions in
+the same report down with them. They are still sent, because they are what
+makes one journey legible in DebugView and in your own ingest endpoint, where
+no such limit applies. Session stitching in reports is GA4's own job; that is
+what its reserved `session_id` is for.
+
 ## Confirming it works
 
 1. **GTM Preview.** Connect, **accept the cookie banner** (until you do there is
@@ -103,7 +118,9 @@ the definition existed is gone for reporting purposes, permanently.
    CTA and a phone link. You should see `cta_click` and `call_click` in the
    timeline with their tags firing, not merely the events arriving.
 2. **GA4 DebugView.** Admin → DebugView, with Preview still connected. The same
-   events, with `session_id` and `cta_location` populated.
+   events, with `bk_session_id` and `cta_location` populated. Parameters show
+   in DebugView whether or not they are registered as dimensions — which is
+   exactly why `bk_session_id` is worth sending.
 
 That second screen is the first moment anything reaches GA4. Until you have seen
 it, the funnel is unproven no matter how green everything else looks.
