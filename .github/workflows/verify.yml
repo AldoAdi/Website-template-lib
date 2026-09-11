@@ -1,0 +1,38 @@
+name: Verify
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Read-only: this job builds nothing and publishes nothing, it only runs
+# the same gate a contributor runs locally.
+permissions:
+  contents: read
+
+# A newer push to the same branch makes an in-flight run irrelevant, so
+# cancel it. (The starter's deploy workflow deliberately does the opposite,
+# because a half-finished deploy is worse than a wasted one.)
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Matches the floor in package.json engines, which Vitest 5 sets.
+          node-version: '22.12'
+          cache: npm
+
+      - run: npm ci
+
+      # typecheck && lint && test:coverage. The coverage floor (80% lines
+      # and branches) is enforced by vitest.config.ts thresholds, so a
+      # coverage regression fails this step -- no separate coverage job and
+      # no third-party reporting service.
+      - run: npm run verify
