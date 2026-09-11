@@ -4,12 +4,12 @@ Four checkpoints, innermost first. Each one proves a different party did its
 job, and they fail in different ways — so when something is broken, the first
 one that goes red tells you whose problem it is.
 
-| #   | Checkpoint        | Proves                                          | Whose fault if red  |
-| --- | ----------------- | ----------------------------------------------- | ------------------- |
-| 1   | On-page inspector | The site pushed the event                       | Ours (this library) |
-| 2   | GTM Preview       | The container received it and a trigger matched | Container config    |
-| 3   | GA4 DebugView     | GA4 received it                                 | GA4 tag config      |
-| 4   | Ads conversion    | The conversion imported                         | Ads ↔ GA4 link      |
+| #   | Checkpoint        | Proves                                                   | Whose fault if red             |
+| --- | ----------------- | -------------------------------------------------------- | ------------------------------ |
+| 1   | On-page inspector | The site pushed the event                                | Ours (this library)            |
+| 2   | GTM Preview       | The container loaded, received it, and a trigger matched | Consent, then container config |
+| 3   | GA4 DebugView     | GA4 received it                                          | GA4 tag config                 |
+| 4   | Ads conversion    | The conversion imported                                  | Ads ↔ GA4 link                 |
 
 Most "tracking is broken" reports die at #2 or #3. Skipping straight to #4 and
 working backwards wastes an afternoon.
@@ -76,11 +76,19 @@ Three things it tells you when they go wrong:
 
 ## 2. GTM Preview — the container's half
 
-In GTM: **Preview**, enter the site URL, connect. Then repeat the click.
+In GTM: **Preview**, enter the site URL, connect.
+
+**Accept the cookie banner in the Preview tab before anything else.** Until you
+do, the page has no container on it at all — `GoogleTagManager` renders `null`
+until consent is granted, because the container bootstrap is itself a beacon.
+Tag Assistant then has nothing to connect to and simply sits there, which reads
+as "GTM is broken" and is in fact the consent gate doing its job.
+
+Then repeat the click.
 
 In the Tag Assistant timeline down the left you should see `cta_click`,
-`booking_view` and `booking_handoff` as separate events. Click one → **Data
-Layer** tab → the full payload, matching what the inspector showed.
+`booking_view`, `booking_handoff` and `call_click` as separate events. Click one
+→ **Data Layer** tab → the full payload, matching what the inspector showed.
 
 If the events appear here but no tag fired, the container has nothing
 configured yet. Create this once:
@@ -97,7 +105,10 @@ dlv - last_utmCampaign →  last_utmCampaign
 ```
 
 **Triggers** → New → Custom Event, one per step. Event name is the literal
-string — `booking_handoff`, no regex needed.
+string — `booking_handoff`, no regex needed. Build one for `call_click` too: it
+is a step like any other, and a container assembled without it silently drops
+the phone half of the funnel, which on a local business is often the larger
+half.
 
 **Tags** → New → Google Analytics: GA4 Event, pointing at your GA4
 configuration tag:
@@ -110,9 +121,17 @@ configuration tag:
 | Parameter `cta_location` | `{{dlv - cta_location}}`                   |
 | Trigger                  | the `booking_handoff` Custom Event trigger |
 
-**If events do not appear in Preview at all:** the container script is
-blocked. The commonest cause is CSP — every tag inside a container loads from
-an origin this library never allowlisted, and a CSP-blocked tag fails
+**If events do not appear in Preview at all**, in order of likelihood:
+
+**1. The banner was never accepted.** See above. Check first: open DevTools →
+Network and filter for `gtm.js`. No request at all means no container, which
+means consent, not configuration. Note that the container ID lives in a
+JavaScript chunk rather than in `index.html` — the component is client-side and
+conditional — so grepping view-source for `GTM-` and finding nothing proves
+nothing about whether the variable is set.
+
+**2. The container script is blocked.** The commonest cause is CSP — every tag
+inside a container loads from an origin this library never allowlisted, and a CSP-blocked tag fails
 _silently_, which looks exactly like a misconfigured tag. Add the origin:
 
 ```ts
