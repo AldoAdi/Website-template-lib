@@ -6,6 +6,8 @@
  * observe the conversion. Routing every booking through a first-party
  * `/book` route puts one measurable choke point in front of that handoff.
  *
+ * A phone call is part of the same funnel -- see `call_click` below.
+ *
  * `booking_abandoned` is deliberately absent. It is a `booking_view` with no
  * `booking_handoff` in the same session -- derived when the data is queried,
  * never emitted, because the browser that abandons is by definition the one
@@ -20,6 +22,21 @@ export type BookingStep =
   | 'booking_handoff'
   /** The scheduler sent the visitor back to our confirmation route. */
   | 'booking_confirmed'
+  /**
+   * A tracked `tel:` link was clicked.
+   *
+   * A call sits in this union rather than in one of its own because, for a
+   * local practice, it is the same conversion reached by a different door --
+   * and for many of them it is the majority door. Splitting it into a
+   * separate event type would mean every report either ignores calls or
+   * re-unions them by hand, which is how a channel ends up looking
+   * worthless: not because it converts badly, but because nobody counted it.
+   *
+   * What it cannot tell you is whether the call was answered, or how long it
+   * lasted. It is an intent signal with the same ceiling as
+   * `booking_handoff`, and it is worth the same caution when bidding on it.
+   */
+  | 'call_click'
 
 /**
  * Marketing attribution captured from the landing URL and referrer.
@@ -80,6 +97,6 @@ export interface BookingEvent {
   readonly at: number
   readonly firstTouch: Attribution
   readonly lastTouch: Attribution
-  /** Where on the page the CTA sat, e.g. `'hero'`. Only set for `cta_click`. */
+  /** Where on the page the CTA sat, e.g. `'hero'`. Set for `cta_click` and `call_click`. */
   readonly location?: string
 }

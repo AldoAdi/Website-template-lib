@@ -34,6 +34,14 @@ export interface TrackingInspectorProps {
   readonly defaultOpen?: boolean
 }
 
+// Lifted to `bottom-24` below `md` because `StickyCallBar` pins a two-button
+// action bar to the bottom of small screens, and this badge sits above it in
+// the stacking order -- at `bottom-4` it would land squarely on the Call
+// button and swallow the click. That is the same class of bug as the two
+// below: a debug tool breaking the behaviour it exists to observe. The offset
+// is unconditional rather than coordinated with the bar, because a badge that
+// floats slightly high on a page without one costs nothing.
+//
 // Collapsed by default and anchored bottom-LEFT, neither of which is a
 // style preference. Both were found by driving a real page:
 //
@@ -48,10 +56,10 @@ export interface TrackingInspectorProps {
 // Left still overlaps the banner's text, which is harmless; its buttons are
 // on the right.
 const BADGE_CLASSES =
-  'bg-foreground text-background fixed bottom-4 left-4 z-[100] rounded-full px-3 py-2 font-mono text-xs shadow-lg'
+  'bg-foreground text-background fixed bottom-24 left-4 z-[100] md:bottom-4 rounded-full px-3 py-2 font-mono text-xs shadow-lg'
 
 const PANEL_CLASSES =
-  'bg-background text-foreground border-border fixed bottom-4 left-4 z-[100] flex max-h-[70vh] w-[min(28rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-lg border shadow-lg'
+  'bg-background text-foreground border-border fixed bottom-24 left-4 z-[100] md:bottom-4 flex max-h-[70vh] w-[min(28rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-lg border shadow-lg'
 
 const ROW_CLASSES = 'border-border border-t px-3 py-2 font-mono text-xs'
 

@@ -147,6 +147,54 @@ Open Dental and exposes an API. Two things worth asking any vendor:
    sends `bk_sid` across. If it lands anywhere readable on the appointment
    record, reconciliation stops being statistical and becomes exact.
 
+## The other half of the funnel: phone calls
+
+Everything above measures the booking button. On a local practice that is
+usually the _smaller_ half.
+
+A `tel:` link is invisible to exactly the same degree the third-party scheduler
+is — worse, in fact, because there is no first-party route to put in front of
+it. A site that counts only `booking_handoff` reports a fraction of its
+conversions, and the fraction is not stable: an "emergency dentist" click calls,
+an "Invisalign" click books. Rank those two campaigns on handoffs alone and you
+will rank them backwards.
+
+`CallLink` closes that gap. It is `BookingLink`'s twin, on the same sinks, with
+the same session and visitor ids:
+
+```tsx
+import { CallLink } from '@aldoadi/website-template/booking'
+
+;<CallLink phone="(562) 438-8802" location="header" className="font-semibold" />
+```
+
+It emits `call_click` with the placement, and writes the `tel:` href itself via
+`toTelHref` — so the visible number stays formatted however the practice formats
+it, and no one hand-maintains a parallel dial string that silently drifts.
+
+`StickyCallBar` is the mobile version of the same idea: a two-button bar pinned
+to the bottom of small screens.
+
+```tsx
+<StickyCallBar phone="(562) 438-8802" bookHref="/book" />
+```
+
+**It renders nothing until the consent banner is answered.** `CookieBanner` is
+also `fixed inset-x-0 bottom-0`, and a bar stacked under it would bury Accept
+and Reject. That failure is invisible and total: consent can never be granted,
+so nothing ever fires, and the funnel looks broken rather than blocked. Once a
+decision exists — grant _or_ deny — the bar appears. A refusal hides the
+tracking, not the phone number.
+
+### What `call_click` is not
+
+It means a dialler opened. It does not mean anyone answered, or that the call
+lasted more than four seconds, or that it became an appointment. It is an intent
+signal with the same ceiling as `booking_handoff`, and it deserves the same
+caution before you bid on it. Call tracking numbers (a distinct number per
+campaign, routed through a provider) are what turn this into a measured
+conversion — this gets you the click, not the conversation.
+
 ## Proving it works
 
 See [VERIFYING-TRACKING.md](./VERIFYING-TRACKING.md) — the on-page inspector,

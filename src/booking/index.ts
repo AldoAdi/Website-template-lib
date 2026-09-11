@@ -49,6 +49,14 @@ export { AttributionCapture } from './AttributionCapture'
 export { BookingLink } from './BookingLink'
 export type { BookingLinkProps } from './BookingLink'
 
+export { CallLink } from './CallLink'
+export type { CallLinkProps } from './CallLink'
+
+export { toTelHref } from './tel'
+
+export { StickyCallBar } from './StickyCallBar'
+export type { StickyCallBarProps } from './StickyCallBar'
+
 export { BookingRedirect, DEFAULT_REDIRECT_DELAY_MS } from './BookingRedirect'
 export type { BookingRedirectProps } from './BookingRedirect'
 
