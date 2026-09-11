@@ -172,6 +172,18 @@ It emits `call_click` with the placement, and writes the `tel:` href itself via
 `toTelHref` — so the visible number stays formatted however the practice formats
 it, and no one hand-maintains a parallel dial string that silently drifts.
 
+On desktop the same link belongs in the header, which now takes an `actions`
+slot for exactly this -- a conversion that stays reachable from every scroll
+position, rather than one the visitor has to scroll back to the hero to find:
+
+```tsx
+<Header
+  logo={<span>Bayside Family Dental</span>}
+  links={NAV_LINKS}
+  actions={<CallLink phone={PRACTICE.phone} location="header" />}
+/>
+```
+
 `StickyCallBar` is the mobile version of the same idea: a two-button bar pinned
 to the bottom of small screens.
 

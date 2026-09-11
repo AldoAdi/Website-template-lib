@@ -15,6 +15,21 @@ export interface HeaderProps {
   /** Brand mark slot -- an image, wordmark, or link; the library never bakes in a brand string. */
   readonly logo: ReactNode
   readonly links: readonly HeaderLink[]
+  /**
+   * Persistent actions kept beside the navigation -- a phone number, a
+   * booking button.
+   *
+   * Separate from `links` because these are not navigation: they are the
+   * conversion, and they need to be reachable from every scroll position
+   * rather than only from the hero the visitor scrolled past. The slot takes
+   * rendered elements so a tracked `CallLink` or `BookingLink` can go here;
+   * `links` renders plain anchors and would record nothing.
+   *
+   * Give the contents their own responsive classes. On a narrow screen there
+   * is room for roughly one action beside the menu button, and
+   * `StickyCallBar` is the better answer there.
+   */
+  readonly actions?: ReactNode
   readonly className?: string
 }
 
@@ -35,7 +50,7 @@ const DISCLOSURE_BUTTON_CLASSES = 'md:hidden'
  * Client component: the disclosure needs to remember whether it is open.
  * `Container`, `Section`, and `Footer` stay server components.
  */
-export function Header({ logo, links, className }: HeaderProps): ReactElement {
+export function Header({ logo, links, actions, className }: HeaderProps): ReactElement {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const navId = useId()
 
@@ -50,6 +65,7 @@ export function Header({ logo, links, className }: HeaderProps): ReactElement {
         <div className="flex items-center">{logo}</div>
 
         <div className="flex items-center gap-4">
+          {actions}
           <ThemeToggle />
           <button
             type="button"
