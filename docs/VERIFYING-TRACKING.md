@@ -121,13 +121,13 @@ half.
 **Tags** → New → Google Analytics: GA4 Event, pointing at your GA4
 configuration tag:
 
-| Field                    | Value                                      |
-| ------------------------ | ------------------------------------------ |
-| Event Name               | `booking_handoff`                          |
-| Parameter `session_id`   | `{{dlv - session_id}}`                     |
-| Parameter `campaign`     | `{{dlv - last_utmCampaign}}`               |
-| Parameter `cta_location` | `{{dlv - cta_location}}`                   |
-| Trigger                  | the `booking_handoff` Custom Event trigger |
+| Field                     | Value                                      |
+| ------------------------- | ------------------------------------------ |
+| Event Name                | `booking_handoff`                          |
+| Parameter `bk_session_id` | `{{dlv - session_id}}`                     |
+| Parameter `campaign`      | `{{dlv - last_utmCampaign}}`               |
+| Parameter `cta_location`  | `{{dlv - cta_location}}`                   |
+| Trigger                   | the `booking_handoff` Custom Event trigger |
 
 **If events do not appear in Preview at all**, in order of likelihood:
 
@@ -157,11 +157,16 @@ On GitHub Pages the CSP is a `<meta>` tag built from the same options.
 ## 3. GA4 DebugView — GA4's half
 
 Before anything here will be _queryable_, register the custom definitions:
-GA4 → Admin → **Custom definitions**, event-scoped, for `session_id`,
-`cta_location`, `campaign` and `booking_step`. An unregistered parameter is
-collected and then dropped from reporting, and registering it later does not
-reach back — every event that arrived first is gone for reporting purposes. Do
-it before the traffic, not after the question.
+GA4 → Admin → **Custom definitions**, event-scoped, for `cta_location`,
+`campaign` and `booking_step`. An unregistered parameter is collected and then
+dropped from reporting, and registering it later does not reach back — every
+event that arrived first is gone for reporting purposes. Do it before the
+traffic, not after the question.
+
+Do **not** try to register `bk_session_id`. GA4 reserves `session_id` outright,
+and an id that is unique per session is a high-cardinality dimension that
+degrades every report it appears in. Send it, read it in DebugView, and leave
+session stitching to GA4.
 
 GA4 → Admin → **DebugView**. With GTM Preview connected, your session appears
 automatically.
@@ -172,7 +177,7 @@ parameters.
 
 Then, once and permanently: GA4 → Admin → **Custom definitions** → create an
 event-scoped custom dimension for every parameter you want to report on
-(`session_id`, `cta_location`, `campaign`). **Parameters not registered here
+(`cta_location`, `campaign`, `booking_step`). **Parameters not registered here
 are collected but never queryable** — they simply will not appear in any
 report, and there is no warning. This is the single most common reason a
 correctly-firing setup produces empty reports.

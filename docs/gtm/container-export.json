@@ -66,7 +66,7 @@
                   {
                     "type": "template",
                     "key": "parameter",
-                    "value": "session_id"
+                    "value": "bk_session_id"
                   },
                   {
                     "type": "template",
@@ -81,7 +81,7 @@
                   {
                     "type": "template",
                     "key": "parameter",
-                    "value": "visitor_id"
+                    "value": "bk_visitor_id"
                   },
                   {
                     "type": "template",
@@ -236,7 +236,7 @@
                   {
                     "type": "template",
                     "key": "parameter",
-                    "value": "session_id"
+                    "value": "bk_session_id"
                   },
                   {
                     "type": "template",
@@ -251,7 +251,7 @@
                   {
                     "type": "template",
                     "key": "parameter",
-                    "value": "visitor_id"
+                    "value": "bk_visitor_id"
                   },
                   {
                     "type": "template",
@@ -406,7 +406,7 @@
                   {
                     "type": "template",
                     "key": "parameter",
-                    "value": "session_id"
+                    "value": "bk_session_id"
                   },
                   {
                     "type": "template",
@@ -421,7 +421,7 @@
                   {
                     "type": "template",
                     "key": "parameter",
-                    "value": "visitor_id"
+                    "value": "bk_visitor_id"
                   },
                   {
                     "type": "template",
@@ -576,7 +576,7 @@
                   {
                     "type": "template",
                     "key": "parameter",
-                    "value": "session_id"
+                    "value": "bk_session_id"
                   },
                   {
                     "type": "template",
@@ -591,7 +591,7 @@
                   {
                     "type": "template",
                     "key": "parameter",
-                    "value": "visitor_id"
+                    "value": "bk_visitor_id"
                   },
                   {
                     "type": "template",
@@ -746,7 +746,7 @@
                   {
                     "type": "template",
                     "key": "parameter",
-                    "value": "session_id"
+                    "value": "bk_session_id"
                   },
                   {
                     "type": "template",
@@ -761,7 +761,7 @@
                   {
                     "type": "template",
                     "key": "parameter",
-                    "value": "visitor_id"
+                    "value": "bk_visitor_id"
                   },
                   {
                     "type": "template",
