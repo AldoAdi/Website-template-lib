@@ -171,10 +171,42 @@ do not control, so what happens after the redirect is unobservable — an
 iframe would not change that.
 
 `booking_confirmed` only becomes real if the vendor supports a post-booking
-redirect to `/book/confirmed`. **Ask them.** Until that answer arrives,
-`booking_handoff` measures booking _intent_, and reporting it as bookings will
-overstate conversions by whatever share of visitors abandon on the scheduler —
-a number nobody currently knows.
+redirect to `/book/confirmed`. **Ask them**, and note that the answer is not
+always yes:
 
-Say so in the report. A modelled estimate presented as an observation is how
-ad budgets get misallocated.
+| Vendor                      | Post-booking redirect       | Funnel ends at      |
+| --------------------------- | --------------------------- | ------------------- |
+| Cal.com                     | Yes (Event Type → Advanced) | `booking_confirmed` |
+| Flex Dental (`flexbook.me`) | **No** — asked and answered | `booking_handoff`   |
+
+On a vendor with no redirect there is a fifth checkpoint you cannot automate,
+and skipping it is how ad budgets get misallocated:
+
+### 5. Reconciliation — monthly, by hand
+
+Ask the front desk for the count of online bookings in a window. Compare it
+against `booking_handoff` in GA4 for the same window. That ratio is your
+handoff→booked rate.
+
+It matters because **optimising Ads on `booking_handoff` is only sound while
+that rate is roughly constant across campaigns** — and it probably is not. An
+emergency click and an implants click hit the same scheduler and abandon at
+different rates. Bidding on handoffs then over-weights whichever converts worse
+downstream, invisibly, because both look identical in the report.
+
+If bookings can be split by service type, compare against handoffs split by
+campaign. Divergence between the two is the risk, made visible.
+
+Until you have that number, report `booking_handoff` to the client as booking
+**requests**, never as bookings. A modelled estimate presented as an
+observation is how ad budgets get misallocated.
+
+### Worth one more email
+
+"No redirect" is not "no webhook". Any scheduler that writes into a practice
+management system already has server-side plumbing — Flex connects
+bidirectionally with Open Dental and exposes an API. Ask for (a) an
+appointment-created **webhook**, which closes the loop with no redirect at all,
+and (b) whether unknown query parameters such as the `bk_sid` we already send
+are stored or echoed anywhere on the appointment record. Either answer turns
+reconciliation from statistical into exact.
