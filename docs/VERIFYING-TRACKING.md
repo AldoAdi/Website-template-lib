@@ -91,7 +91,15 @@ In the Tag Assistant timeline down the left you should see `cta_click`,
 → **Data Layer** tab → the full payload, matching what the inspector showed.
 
 If the events appear here but no tag fired, the container has nothing
-configured yet. Create this once:
+configured yet.
+
+**The fast path: import it.** [`gtm/container-export.json`](./gtm/container-export.json)
+contains the whole funnel — 10 variables, 5 triggers, 6 tags — and leaves exactly
+one field to edit. See [`gtm/README.md`](./gtm/README.md), and read the warning
+about **Merge vs Overwrite** before you click Import: Overwrite deletes
+everything already in the container.
+
+Or build it by hand, which is what the import contains:
 
 **Variables** → New → Data Layer Variable, one each. Name them to match the
 key exactly:
@@ -147,6 +155,13 @@ On GitHub Pages the CSP is a `<meta>` tag built from the same options.
 ---
 
 ## 3. GA4 DebugView — GA4's half
+
+Before anything here will be _queryable_, register the custom definitions:
+GA4 → Admin → **Custom definitions**, event-scoped, for `session_id`,
+`cta_location`, `campaign` and `booking_step`. An unregistered parameter is
+collected and then dropped from reporting, and registering it later does not
+reach back — every event that arrived first is gone for reporting purposes. Do
+it before the traffic, not after the question.
 
 GA4 → Admin → **DebugView**. With GTM Preview connected, your session appears
 automatically.
