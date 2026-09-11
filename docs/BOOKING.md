@@ -102,10 +102,50 @@ confirmation URL?_ If yes, point it at `/book/confirmed`:
 
 The visitor's cookies survive the round trip, so this stitches to the handoff
 without the vendor passing anything back — and `booking_confirmed` becomes a
-real conversion to bid against.
+real conversion to bid against. Verified end to end against Cal.com, which does
+support it: the `session_id` on `booking_confirmed` matches the one sent to the
+scheduler, and the original `gclid` is still attached.
 
-If the answer is no, say so in your reporting. A modelled estimate that gets
-presented as an observation is how ad budgets get misallocated.
+#### When the vendor says no
+
+Some do. **Flex Dental (`flexbook.me`) has no post-booking redirect** — asked
+and answered — so on a Flex practice `booking_confirmed` can never fire and the
+funnel is permanently capped at `booking_handoff`.
+
+That is not just a missing number. It creates a bidding risk worth naming:
+
+> Optimising Google Ads on `booking_handoff` is only sound while the
+> handoff→booked rate is roughly **constant across campaigns**.
+
+It probably is not. An "emergency dentist" click and an "Invisalign" click hit
+the same scheduler and abandon at different rates — insurance not accepted, the
+service not bookable online, a scheduler flow that suits one appointment type
+better than another. If implants completes at 60% past the handoff and
+emergencies at 25%, bidding on handoffs systematically over-weights emergencies
+while both read as wins on the dashboard.
+
+**The cheap measurement.** Monthly, ask the front desk for the count of online
+bookings in a window and compare it against `booking_handoff` in GA4 for the
+same window. That gives one blended handoff→booked rate. If the practice can
+split their bookings by service type, compare that against handoffs split by
+campaign — divergence between the two is exactly the risk above, made visible.
+
+Until you have that number, `booking_handoff` is a **ranking signal between
+campaigns**, not a booking count. Report it to the client as booking _requests_.
+A modelled estimate presented as an observation is how ad budgets get
+misallocated.
+
+**Before accepting the cap, ask one more question.** "No redirect" is not "no
+webhook". A scheduler that integrates with a practice management system already
+has server-side plumbing — Flex, for instance, connects bidirectionally with
+Open Dental and exposes an API. Two things worth asking any vendor:
+
+1. Is there an **appointment-created webhook**? That closes the loop server-side
+   with no redirect at all — point it at an ingest route (see below) and match
+   on timestamp or on the id in (2).
+2. Do they **store or echo unknown query parameters**? `buildBookingUrl` already
+   sends `bk_sid` across. If it lands anywhere readable on the appointment
+   record, reconciliation stops being statistical and becomes exact.
 
 ## Proving it works
 
