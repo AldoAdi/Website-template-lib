@@ -101,3 +101,33 @@ describe('Header', () => {
     })
   })
 })
+
+function renderWithActions(actions?: React.ReactNode) {
+  return render(
+    <NextThemesProvider attribute="class" defaultTheme="light" enableSystem>
+      <Header logo={<span>Acme</span>} links={LINKS} actions={actions} />
+    </NextThemesProvider>,
+  )
+}
+
+describe('Header actions slot', () => {
+  test('renders nothing extra when no actions are given', () => {
+    renderWithActions()
+
+    expect(screen.queryByRole('link', { name: 'Call' })).toBeNull()
+  })
+
+  test('renders caller-supplied actions beside the navigation', () => {
+    renderWithActions(<a href="tel:5624388802">Call</a>)
+
+    expect(screen.getByRole('link', { name: 'Call' }).getAttribute('href')).toBe('tel:5624388802')
+  })
+
+  test('keeps actions outside the navigation landmark, since they are not navigation', () => {
+    renderWithActions(<a href="/book">Book</a>)
+
+    const nav = screen.getByRole('navigation', { name: 'Primary' })
+
+    expect(nav.querySelector('a[href="/book"]')).toBeNull()
+  })
+})

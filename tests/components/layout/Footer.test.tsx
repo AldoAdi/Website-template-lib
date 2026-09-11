@@ -35,3 +35,43 @@ describe('Footer', () => {
     expect(footer.className).not.toMatch(/#[0-9a-f]{3,8}\b/i)
   })
 })
+
+const INFO_LINKS = [
+  { label: 'Privacy', href: '/privacy' },
+  { label: 'Terms', href: '/terms' },
+]
+
+describe('Footer info slot', () => {
+  test('renders nothing extra when no info is given', () => {
+    const { container } = render(<Footer links={INFO_LINKS} copyright="© 2026 Acme" />)
+
+    expect(container.querySelectorAll('footer > div')).toHaveLength(1)
+  })
+
+  test('renders caller-supplied business details above the links row', () => {
+    render(
+      <Footer
+        links={INFO_LINKS}
+        copyright="© 2026 Acme"
+        info={<address>4200 E Ocean Blvd</address>}
+      />,
+    )
+
+    expect(screen.getByText('4200 E Ocean Blvd')).toBeDefined()
+  })
+
+  test('keeps the details outside the footer navigation landmark', () => {
+    render(<Footer links={INFO_LINKS} info={<a href="tel:5624388802">Call us</a>} />)
+
+    const nav = screen.getByRole('navigation', { name: 'Footer' })
+
+    expect(nav.querySelector('a[href^="tel:"]')).toBeNull()
+  })
+
+  test('renders the details even with no links and no copyright', () => {
+    render(<Footer info={<p>Open Monday to Friday</p>} />)
+
+    expect(screen.getByText('Open Monday to Friday')).toBeDefined()
+    expect(screen.queryByRole('navigation')).toBeNull()
+  })
+})
