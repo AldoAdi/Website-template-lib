@@ -3,6 +3,9 @@ import {
   buildBreadcrumbSchema,
   buildFaqPageSchema,
   buildLocalBusinessSchema,
+  buildPersonSchema,
+  buildServiceSchema,
+  buildWebPageSchema,
 } from '../../src/seo/schema'
 
 const ADDRESS = {
@@ -165,5 +168,139 @@ describe('buildBreadcrumbSchema', () => {
       { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://example.com/' },
       { '@type': 'ListItem', position: 2, name: 'Book', item: 'https://example.com/book/' },
     ])
+  })
+})
+
+describe('buildPersonSchema', () => {
+  test('emits a Person with only the fields it was given', () => {
+    const schema = buildPersonSchema({ name: 'Dr Matthew Listiyo' })
+
+    expect(schema).toEqual({
+      '@context': 'https://schema.org',
+      '@type': 'Person',
+      name: 'Dr Matthew Listiyo',
+    })
+  })
+
+  test('ties the practitioner to the practice they work for', () => {
+    const schema = buildPersonSchema({
+      name: 'Dr Matthew Listiyo',
+      jobTitle: 'DDS',
+      worksFor: { name: 'Listiyo Family Dental', url: 'https://example.com' },
+    })
+
+    expect(schema.jobTitle).toBe('DDS')
+    expect(schema.worksFor).toEqual({
+      '@type': 'Organization',
+      name: 'Listiyo Family Dental',
+      url: 'https://example.com',
+    })
+  })
+
+  test('wraps a school name in the type schema.org expects', () => {
+    const schema = buildPersonSchema({ name: 'Dr Reyes', alumniOf: 'UCLA School of Dentistry' })
+
+    expect(schema.alumniOf).toEqual({
+      '@type': 'EducationalOrganization',
+      name: 'UCLA School of Dentistry',
+    })
+  })
+
+  test('omits an empty sameAs rather than emitting a bare array', () => {
+    const schema = buildPersonSchema({ name: 'Dr Reyes', sameAs: [] })
+
+    expect(schema).not.toHaveProperty('sameAs')
+  })
+})
+
+describe('buildServiceSchema', () => {
+  test('emits a Service naming its provider', () => {
+    const schema = buildServiceSchema({
+      name: 'Invisalign',
+      description: 'Clear aligners.',
+      provider: { name: 'Listiyo Family Dental' },
+    })
+
+    expect(schema['@type']).toBe('Service')
+    expect(schema.provider).toEqual({
+      '@type': 'Organization',
+      name: 'Listiyo Family Dental',
+    })
+  })
+
+  test('never publishes a price, which a healthcare service does not have', () => {
+    const schema = buildServiceSchema({
+      name: 'Invisalign',
+      description: 'Clear aligners.',
+      provider: { name: 'Listiyo Family Dental' },
+    })
+
+    expect(schema).not.toHaveProperty('offers')
+    expect(schema).not.toHaveProperty('price')
+  })
+
+  test('carries the optional narrowing fields when given', () => {
+    const schema = buildServiceSchema({
+      name: 'Invisalign',
+      description: 'Clear aligners.',
+      url: 'https://example.com/services/invisalign',
+      serviceType: 'Cosmetic dentistry',
+      areaServed: 'Long Beach, CA',
+      provider: { name: 'Listiyo Family Dental' },
+    })
+
+    expect(schema.serviceType).toBe('Cosmetic dentistry')
+    expect(schema.areaServed).toBe('Long Beach, CA')
+    expect(schema.url).toBe('https://example.com/services/invisalign')
+  })
+})
+
+describe('buildWebPageSchema', () => {
+  test('emits a WebPage with only the fields it was given', () => {
+    const schema = buildWebPageSchema({ name: 'Invisalign', url: 'https://example.com/invisalign' })
+
+    expect(schema).toEqual({
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: 'Invisalign',
+      url: 'https://example.com/invisalign',
+    })
+  })
+
+  test('ties the page to the site entity through isPartOf', () => {
+    const schema = buildWebPageSchema({
+      name: 'Invisalign',
+      url: 'https://example.com/invisalign',
+      siteUrl: 'https://example.com',
+    })
+
+    expect(schema.isPartOf).toEqual({ '@type': 'WebSite', url: 'https://example.com' })
+  })
+
+  test('wraps the lead image as an ImageObject', () => {
+    const schema = buildWebPageSchema({
+      name: 'Invisalign',
+      url: 'https://example.com/invisalign',
+      primaryImage: 'https://example.com/hero.jpg',
+    })
+
+    expect(schema.primaryImageOfPage).toEqual({
+      '@type': 'ImageObject',
+      url: 'https://example.com/hero.jpg',
+    })
+  })
+
+  test('carries the dates a crawler uses to decide whether to refetch', () => {
+    const schema = buildWebPageSchema({
+      name: 'Invisalign',
+      url: 'https://example.com/invisalign',
+      datePublished: '2026-01-02',
+      dateModified: '2026-08-26',
+      inLanguage: 'en-US',
+    })
+
+    expect(schema.datePublished).toBe('2026-01-02')
+    expect(schema.dateModified).toBe('2026-08-26')
+    expect(schema.inLanguage).toBe('en-US')
   })
 })
