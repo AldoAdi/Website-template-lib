@@ -1,10 +1,8 @@
 'use client'
 
-import { useSyncExternalStore } from 'react'
 import type { ReactElement } from 'react'
 import Link from 'next/link'
-import { getConsentState, onConsentChange } from '../analytics/consent'
-import type { ConsentState } from '../analytics/consent'
+import { useConsentState } from '../analytics/useConsentState'
 import { CallLink } from './CallLink'
 
 export interface StickyCallBarProps {
@@ -28,16 +26,6 @@ const BUTTON_BASE =
 
 const CALL_CLASSES = `${BUTTON_BASE} bg-primary text-primary-foreground`
 const BOOK_CLASSES = `${BUTTON_BASE} border-border text-foreground border`
-
-function subscribe(onStoreChange: () => void): () => void {
-  return onConsentChange(() => onStoreChange())
-}
-
-// Same server/client split CookieBanner documents: the server cannot know a
-// stored decision, so both it and the first client paint report 'unknown'.
-function getServerSnapshot(): ConsentState {
-  return 'unknown'
-}
 
 /**
  * A two-button action bar pinned to the bottom of small screens: call, or
@@ -68,7 +56,7 @@ export function StickyCallBar({
   location = 'sticky-bar',
   className,
 }: StickyCallBarProps): ReactElement | null {
-  const consentState = useSyncExternalStore(subscribe, getConsentState, getServerSnapshot)
+  const consentState = useConsentState()
 
   if (consentState === 'unknown') return null
 

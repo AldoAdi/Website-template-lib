@@ -1,56 +1,41 @@
 'use client'
 
-import { useSyncExternalStore } from 'react'
+import { useId, useState } from 'react'
 import type { ReactElement } from 'react'
-import {
-  denyConsent,
-  getConsentState,
-  grantConsent,
-  onConsentChange,
-} from '../../analytics/consent'
-import type { ConsentState } from '../../analytics/consent'
+import { denyConsent, grantConsent } from '../../analytics/consent'
+import { useConsentState } from '../../analytics/useConsentState'
+import { ConsentPreferences } from './ConsentPreferences'
 
 export interface CookieBannerProps {
   readonly message?: string
   readonly acceptLabel?: string
   readonly rejectLabel?: string
+  /** Defaults to `'Manage preferences'`. */
+  readonly preferencesLabel?: string
+  /**
+   * Set false to drop the per-category panel and ship a two-button banner.
+   *
+   * Only reasonable where the site loads no optional storage at all beyond
+   * analytics; anywhere an advertising tag might appear, the granular panel
+   * is the thing that makes the banner an actual choice.
+   */
+  readonly showPreferences?: boolean
 }
 
 const DEFAULT_MESSAGE =
   'We use cookies to understand how this site is used. Choose whether to allow analytics cookies.'
 const DEFAULT_ACCEPT_LABEL = 'Accept'
 const DEFAULT_REJECT_LABEL = 'Reject'
+const DEFAULT_PREFERENCES_LABEL = 'Manage preferences'
 
 const BUTTON_BASE_CLASSES = 'rounded-md px-4 py-2 text-sm font-medium'
 
-// useSyncExternalStore's subscribe contract takes a callback with no
-// arguments -- it only needs to know "something changed", then re-invokes
-// the snapshot getter itself. `onConsentChange` is the module's general
-// pub/sub API and passes the new state to its listener; this adapter just
-// ignores that argument.
-function subscribe(onStoreChange: () => void): () => void {
-  return onConsentChange(() => onStoreChange())
-}
-
-// The server cannot know the visitor's stored decision, so it cannot render
-// the correct one -- this is the exact server/client split ThemeToggle
-// documents. Both the server render and the client's first paint therefore
-// report 'unknown' (banner visible); the real, possibly-hidden state swaps
-// in a moment later once mounted, which is a state update rather than a
-// disagreement between server and client markup, so no hydration mismatch.
-function getServerSnapshot(): ConsentState {
-  return 'unknown'
-}
-
-function useConsentState(): ConsentState {
-  return useSyncExternalStore(subscribe, getConsentState, getServerSnapshot)
-}
-
 /**
  * Fixed-position banner shown only while consent is undecided. Disappears
- * the moment a decision is made (accept or reject) and, because it reads
- * through the consent module rather than local state, stays gone across
- * reloads whenever storage is available.
+ * the moment a decision is made (accept, reject, or a saved set of
+ * category choices) and, because it reads through the consent module rather
+ * than local state, stays gone across reloads whenever storage is
+ * available.
  *
  * Copy is entirely prop-driven with sensible English defaults -- this
  * component never bakes in site-specific marketing text.
@@ -59,8 +44,12 @@ export function CookieBanner({
   message = DEFAULT_MESSAGE,
   acceptLabel = DEFAULT_ACCEPT_LABEL,
   rejectLabel = DEFAULT_REJECT_LABEL,
+  preferencesLabel = DEFAULT_PREFERENCES_LABEL,
+  showPreferences = true,
 }: CookieBannerProps): ReactElement | null {
   const consentState = useConsentState()
+  const [isPanelOpen, setIsPanelOpen] = useState(false)
+  const panelId = useId()
 
   if (consentState !== 'unknown') return null
 
@@ -68,10 +57,32 @@ export function CookieBanner({
     <div
       role="region"
       aria-label="Cookie consent"
-      className="fixed inset-x-0 bottom-0 z-50 flex flex-col gap-gutter border-t border-border bg-background px-gutter py-gutter text-foreground shadow-lg sm:flex-row sm:items-center sm:justify-between"
+      className="gap-gutter px-gutter py-gutter border-border bg-background text-foreground fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] flex-col overflow-y-auto border-t shadow-lg sm:flex-row sm:items-center sm:justify-between"
     >
-      <p className="text-sm">{message}</p>
-      <div className="flex shrink-0 gap-2">
+      <div className="flex flex-col gap-3 sm:max-w-xl">
+        <p className="text-sm">{message}</p>
+        {/* The panel lives inside the same region rather than in a modal
+            dialog: the banner is already the topmost thing on the page, and
+            a dialog here would trap focus over content the visitor has not
+            been allowed to read yet. */}
+        {showPreferences && isPanelOpen ? (
+          <div id={panelId} className="border-border rounded-md border p-4">
+            <ConsentPreferences />
+          </div>
+        ) : null}
+      </div>
+      <div className="flex shrink-0 flex-wrap gap-2">
+        {showPreferences ? (
+          <button
+            type="button"
+            aria-expanded={isPanelOpen}
+            aria-controls={panelId}
+            onClick={() => setIsPanelOpen((open) => !open)}
+            className={`${BUTTON_BASE_CLASSES} text-muted-foreground underline underline-offset-4`}
+          >
+            {preferencesLabel}
+          </button>
+        ) : null}
         {/* Reject and Accept are styled with the same size and equal
             visual weight -- one is not a de-emphasized link next to a
             prominent button. */}

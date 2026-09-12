@@ -1,18 +1,27 @@
-// Reached via the "./seo" subpath.
 export { buildMetadata, buildCanonicalUrl } from './metadata'
 export type { SiteMetadataConfig, PageMetadataInput, SeoImage } from './metadata'
 export { JsonLd, buildOrganizationSchema, buildWebSiteSchema, serializeJsonLd } from './jsonld'
 export type { JsonLdProps, JsonLdData, OrganizationSchemaInput, WebSiteSchemaInput } from './jsonld'
-export { buildLocalBusinessSchema, buildFaqPageSchema, buildBreadcrumbSchema } from './schema'
+export {
+  buildLocalBusinessSchema,
+  buildFaqPageSchema,
+  buildBreadcrumbSchema,
+  buildPersonSchema,
+  buildServiceSchema,
+  buildWebPageSchema,
+} from './schema'
 export type {
-  LocalBusinessSchemaInput,
-  FaqPageSchemaInput,
-  FaqSchemaItem,
-  BreadcrumbSchemaInput,
-  BreadcrumbItem,
+  DayOfWeek,
   PostalAddressInput,
   OpeningHoursInput,
-  DayOfWeek,
+  LocalBusinessSchemaInput,
+  FaqSchemaItem,
+  FaqPageSchemaInput,
+  BreadcrumbItem,
+  BreadcrumbSchemaInput,
+  PersonSchemaInput,
+  ServiceSchemaInput,
+  WebPageSchemaInput,
 } from './schema'
 export { buildSitemap, buildRobots } from './sitemap'
 export type { SitemapRouteInput, BuildSitemapInput, BuildRobotsInput } from './sitemap'

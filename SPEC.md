@@ -424,3 +424,110 @@ tracked CTA.
 Changed: `getHttpSecurityHeaders`, `getMetaSecurityTags`, `securityHeaders` and
 `defineNextConfig` take an optional `connectSrc` allowlist extension. Additive
 and backwards compatible, but a public-API change — tag a minor version.
+
+---
+
+## Amendment: navigation, content and granular consent (v0.5)
+
+Driven by a like-for-like comparison against a real, mature practice site (a
+WordPress/Elementor build). The gap was never a missing framework feature; it
+was that the library had components for a one-page brochure and the real site
+is a small information architecture — sixty-odd service and education pages
+behind a mega menu, two advertised offers, a named clinician with a page of his
+own, and a four-category consent panel.
+
+Everything below is built in the library. The starter gains content and routes,
+not logic.
+
+### What the comparison actually showed
+
+Ranked by how much each absence cost, not by how hard it was to build:
+
+1. **No multi-level navigation.** `Header` took a flat `{ label, href }[]`, so a
+   site with more than about six destinations had nowhere to put them.
+2. **No page-level chrome for inner pages.** No breadcrumbs, no page header, no
+   prose styles — so every route past `/` had to hand-roll its own, which is
+   how three pages end up with three type scales.
+3. **No offers.** A price with terms attached is a distinct component, not a
+   `Card` with the small print pushed into free-form body content where it
+   reliably gets dropped.
+4. **All-or-nothing consent.** One Accept button cannot express "statistics yes,
+   marketing no", and a site with a map embed or an ad pixel needs it to.
+5. **No motion, no carousel, no gated third-party embed.**
+
+### Decisions worth recording
+
+**No new runtime dependency, again.** The carousel is CSS scroll-snap plus two
+`scrollBy` calls; the reveal animation is `IntersectionObserver`; the mobile
+menu is nested `<details>`. Swiper, Framer Motion and a lightbox library were
+all considered and none of them buy anything the platform does not already do
+for a page of this kind.
+
+**`Reveal` renders visible and hides itself in an effect.** The initial markup
+carries no hiding class, so JavaScript that is blocked, broken, or still loading
+leaves a readable page rather than a blank one. It also checks whether the
+element is already on screen before hiding it, so above-the-fold copy never
+flashes, and does nothing at all under `prefers-reduced-motion`.
+
+**`MapEmbed` is consent-gated and still gives directions.** Until the required
+category is granted it renders a placeholder with a plain link to the map
+provider — never a blank box. Directions must not be reachable only by
+accepting tracking.
+
+**Consent gained categories without gaining a second source of truth.** The
+overall `ConsentState` now tracks the `statistics` category and nothing else, so
+`hasConsent()` keeps its original one-line meaning and every existing caller is
+unaffected. `marketing` and `preferences` are recorded for the site's own
+third-party tags to read through `hasConsentFor`; the library will not widen its
+own analytics gate on their behalf. A visitor who accepted under the old
+single-button banner reads back as all-granted and is not re-prompted.
+
+**Still no `aggregateRating`, and now no `Offer` either.** `buildServiceSchema`
+deliberately emits no price: a healthcare price that varies with an insurance
+plan, a diagnosis and a chair's worth of clinical judgement is not the fixed
+`Offer` that markup describes. Advertised prices belong in an `OfferCard`, with
+their terms attached, where they are a marketing claim rather than a
+machine-readable promise.
+
+### Two RSC footguns found the hard way, both fixed in the library
+
+Both produce a dev-only "each child in a list should have a unique key" warning
+that names a library component and a consumer file, which is the worst possible
+combination — it looks like the consumer's bug and cannot be fixed there.
+
+1. **A slot rendered by a server component, sitting among siblings inside a
+   client component.** `Header`'s `actions` arrives across the RSC boundary,
+   where React cannot stamp it key-validated the way it does for elements
+   created during the current render. It is now wrapped in a keyed `Fragment`
+   created inside `Header`.
+2. **A conditional sibling next to a component element.** In `MobileNavTree`
+   that pair compiles to a dynamic children array, so both children carry a
+   constant explicit `key`.
+
+Related: `NavItem`'s sub-item field is `items`, not `children`. React's dev
+validation treats a prop named `children` as element children wherever it finds
+one, and reports a tree of plain objects as an unkeyed list.
+
+### Public API added
+
+`./components` (nav) — `MegaMenu`, `MobileNavTree`, `SkipLink`, `Breadcrumbs`,
+`NavItem`, `hasSubItems`.
+
+`./components` (content) — `OfferCard`, `CheckList`, `ContactCards`,
+`SplitSection`, `Carousel`, `Reveal`, `ScrollToTop`, `SocialLinks`, `MapEmbed`,
+`PageHeader`, `Prose`.
+
+`./components` (consent) — `ConsentPreferences`.
+
+`./analytics` — `CONSENT_CATEGORIES`, `ConsentCategory`, `ConsentCategories`,
+`getConsentCategories`, `setConsentCategories`, `hasConsentFor`,
+`useConsentState`, `useConsentFor`.
+
+`./seo` — `buildPersonSchema`, `buildServiceSchema`, `buildWebPageSchema`.
+
+Changed: `Header` takes `links: readonly NavItem[]` (a flat `{ label, href }[]`
+is still a valid `NavItem[]`, so existing sites keep type-checking) plus new
+optional `topBar` and `sticky` props; `sticky` defaults to **true**, which is a
+visual change on upgrade. `CookieBanner` shows a "Manage preferences"
+disclosure by default; pass `showPreferences={false}` for the old two-button
+banner. Additive otherwise — tag a minor version.

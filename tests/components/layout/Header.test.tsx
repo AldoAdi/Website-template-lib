@@ -76,9 +76,14 @@ describe('Header', () => {
       expect(disclosure.getAttribute('aria-expanded')).toBe('false')
       expect(disclosure.getAttribute('aria-label')).toBeTruthy()
 
+      // The button controls the collapsible panel, not the whole nav: the
+      // desktop menu inside that same nav is not what this button expands.
       const controlledId = disclosure.getAttribute('aria-controls')
       expect(controlledId).toBeTruthy()
-      expect(document.getElementById(controlledId as string)).toBe(screen.getByRole('navigation'))
+
+      const panel = document.getElementById(controlledId as string)
+      expect(panel).not.toBeNull()
+      expect(screen.getByRole('navigation').contains(panel)).toBe(true)
     })
 
     test('activating the disclosure button expands it and flips aria-expanded to true', () => {

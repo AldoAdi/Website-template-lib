@@ -10,12 +10,17 @@ import { notifyAnalyticsEvent } from './observer'
 export {
   getConsentState,
   hasConsent,
+  hasConsentFor,
+  getConsentCategories,
+  setConsentCategories,
   grantConsent,
   denyConsent,
   resetConsent,
   onConsentChange,
+  CONSENT_CATEGORIES,
 } from './consent'
-export type { ConsentState, ConsentListener } from './consent'
+export type { ConsentState, ConsentListener, ConsentCategory, ConsentCategories } from './consent'
+export { useConsentState, useConsentFor } from './useConsentState'
 export type { TrackEvent } from './types'
 export { GoogleAnalytics } from './GoogleAnalytics'
 export type { GoogleAnalyticsProps } from './GoogleAnalytics'

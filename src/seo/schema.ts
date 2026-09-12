@@ -170,3 +170,138 @@ export function buildBreadcrumbSchema(input: BreadcrumbSchemaInput): JsonLdData 
     })),
   }
 }
+
+export interface PersonSchemaInput {
+  readonly name: string
+  /** `'DDS'`, `'Practice manager'`. */
+  readonly jobTitle?: string
+  /** Canonical URL of this person's own page on the site. */
+  readonly url?: string
+  /** Absolute URL of a portrait. */
+  readonly image?: string
+  readonly description?: string
+  /** The practice they work for. */
+  readonly worksFor?: { readonly name: string; readonly url?: string }
+  /** Where they trained. */
+  readonly alumniOf?: string
+  /** Profile URLs for the same person -- Healthgrades, LinkedIn, a professional register. */
+  readonly sameAs?: readonly string[]
+}
+
+/**
+ * Builds a schema.org `Person` object for a named practitioner.
+ *
+ * Worth emitting on any page that introduces a real clinician, because the
+ * practitioner and the practice are separate entities that a search engine
+ * would otherwise have to guess are related -- `worksFor` states it. On a
+ * single-practitioner site this is also what connects reviews and profiles
+ * held under a person's name to the business.
+ */
+export function buildPersonSchema(input: PersonSchemaInput): JsonLdData {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: input.name,
+    ...(input.jobTitle === undefined ? {} : { jobTitle: input.jobTitle }),
+    ...(input.url === undefined ? {} : { url: input.url }),
+    ...(input.image === undefined ? {} : { image: input.image }),
+    ...(input.description === undefined ? {} : { description: input.description }),
+    ...(input.alumniOf === undefined
+      ? {}
+      : { alumniOf: { '@type': 'EducationalOrganization', name: input.alumniOf } }),
+    ...(input.worksFor === undefined
+      ? {}
+      : {
+          worksFor: {
+            '@type': 'Organization',
+            name: input.worksFor.name,
+            ...(input.worksFor.url === undefined ? {} : { url: input.worksFor.url }),
+          },
+        }),
+    ...(input.sameAs === undefined || input.sameAs.length === 0 ? {} : { sameAs: input.sameAs }),
+  }
+}
+
+export interface ServiceSchemaInput {
+  readonly name: string
+  readonly description: string
+  /** Canonical URL of the page describing this service. */
+  readonly url?: string
+  /** The practice offering it. */
+  readonly provider: { readonly name: string; readonly url?: string }
+  /** A narrower category than the name, e.g. `'Cosmetic dentistry'`. */
+  readonly serviceType?: string
+  /** Town, city or region served -- the phrase a person would use, not a polygon. */
+  readonly areaServed?: string
+}
+
+/**
+ * Builds a schema.org `Service` object for one treatment or offering.
+ *
+ * One per service page. **No `offers` block and no price:** a healthcare
+ * price that varies with an insurance plan, a diagnosis, and a chair's worth
+ * of clinical judgement is not the fixed `Offer` that markup describes, and
+ * publishing one as if it were is both a policy problem and a promise the
+ * practice cannot keep. Advertised prices belong in an `OfferCard` on the
+ * page, with their terms attached.
+ */
+export function buildServiceSchema(input: ServiceSchemaInput): JsonLdData {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: input.name,
+    description: input.description,
+    ...(input.url === undefined ? {} : { url: input.url }),
+    ...(input.serviceType === undefined ? {} : { serviceType: input.serviceType }),
+    ...(input.areaServed === undefined ? {} : { areaServed: input.areaServed }),
+    provider: {
+      '@type': 'Organization',
+      name: input.provider.name,
+      ...(input.provider.url === undefined ? {} : { url: input.provider.url }),
+    },
+  }
+}
+
+export interface WebPageSchemaInput {
+  readonly name: string
+  /** This page's canonical URL. */
+  readonly url: string
+  readonly description?: string
+  /** The site's `WebSite` URL, which is how this page is tied to the site entity. */
+  readonly siteUrl?: string
+  /** Absolute URL of the page's lead image. */
+  readonly primaryImage?: string
+  /** ISO 8601 dates. Pass `dateModified` on anything that gets edited. */
+  readonly datePublished?: string
+  readonly dateModified?: string
+  /** BCP 47 language tag, e.g. `'en-US'`. */
+  readonly inLanguage?: string
+}
+
+/**
+ * Builds a schema.org `WebPage` object.
+ *
+ * The connective tissue between the per-page markup and the site-level
+ * `WebSite` and `Organization` entities: without it each page's structured
+ * data is a set of unrelated islands. `dateModified` is the field that
+ * earns its keep -- it is the one a crawler uses to decide whether a page
+ * it has already seen is worth fetching again.
+ */
+export function buildWebPageSchema(input: WebPageSchemaInput): JsonLdData {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: input.name,
+    url: input.url,
+    ...(input.description === undefined ? {} : { description: input.description }),
+    ...(input.inLanguage === undefined ? {} : { inLanguage: input.inLanguage }),
+    ...(input.datePublished === undefined ? {} : { datePublished: input.datePublished }),
+    ...(input.dateModified === undefined ? {} : { dateModified: input.dateModified }),
+    ...(input.primaryImage === undefined
+      ? {}
+      : { primaryImageOfPage: { '@type': 'ImageObject', url: input.primaryImage } }),
+    ...(input.siteUrl === undefined
+      ? {}
+      : { isPartOf: { '@type': 'WebSite', url: input.siteUrl } }),
+  }
+}
