@@ -244,3 +244,45 @@ describe('script-src and img-src allowlist extensions', () => {
     expect(csp).not.toContain('base-uri *')
   })
 })
+
+describe('the library allowlists its own integrations everywhere they reach', () => {
+  // The invariant that was missing. googletagmanager.com was allowlisted in
+  // script-src and connect-src but not img-src, so GTM's /td diagnostics ping
+  // was blocked on every site built on this library -- found by a console
+  // error on a live deploy, not by these tests.
+  const GTM = 'https://www.googletagmanager.com'
+  const GA = 'https://www.google-analytics.com'
+  const GA_WILDCARD = 'https://*.google-analytics.com'
+
+  function cspOf(): string {
+    return getHttpSecurityHeaders().find((h) => h.key === 'Content-Security-Policy')?.value ?? ''
+  }
+
+  function directive(csp: string, name: string): string {
+    return csp.split('; ').find((d) => d.startsWith(`${name} `)) ?? ''
+  }
+
+  test('googletagmanager is present in every directive that can fetch it', () => {
+    const csp = cspOf()
+
+    for (const name of ['script-src', 'connect-src', 'img-src']) {
+      expect(directive(csp, name)).toContain(GTM)
+    }
+  })
+
+  test('google-analytics is reachable by beacon and by image fallback', () => {
+    const csp = cspOf()
+
+    for (const name of ['connect-src', 'img-src']) {
+      expect(directive(csp, name)).toContain(GA)
+      expect(directive(csp, name)).toContain(GA_WILDCARD)
+    }
+  })
+
+  test('the meta CSP carries the same img-src allowlist as the HTTP one', () => {
+    const meta = getMetaSecurityTags().find((tag) => tag.httpEquiv === 'Content-Security-Policy')
+
+    expect(meta).toBeDefined()
+    expect(directive(meta?.content ?? '', 'img-src')).toContain(GTM)
+  })
+})

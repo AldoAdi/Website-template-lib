@@ -7,7 +7,14 @@ import { getGaId, gtagEvent } from './gtag'
 import { dataLayerPush, getGtmId } from './dataLayer'
 import { notifyAnalyticsEvent } from './observer'
 
-export { getConsentState, hasConsent, grantConsent, denyConsent, onConsentChange } from './consent'
+export {
+  getConsentState,
+  hasConsent,
+  grantConsent,
+  denyConsent,
+  resetConsent,
+  onConsentChange,
+} from './consent'
 export type { ConsentState, ConsentListener } from './consent'
 export type { TrackEvent } from './types'
 export { GoogleAnalytics } from './GoogleAnalytics'
