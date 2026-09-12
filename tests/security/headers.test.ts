@@ -159,7 +159,8 @@ describe('connect-src allowlist extension', () => {
 
     expect(connectSrcOf(csp ?? '')).toBe(
       "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com " +
-        'https://www.googletagmanager.com https://api.web3forms.com',
+        'https://*.analytics.google.com https://www.googletagmanager.com ' +
+        'https://www.google.com https://stats.g.doubleclick.net https://api.web3forms.com',
     )
   })
 
@@ -277,6 +278,31 @@ describe('the library allowlists its own integrations everywhere they reach', ()
       expect(directive(csp, name)).toContain(GA)
       expect(directive(csp, name)).toContain(GA_WILDCARD)
     }
+  })
+
+  test('every origin GA4 collects to is in connect-src', () => {
+    // The omission that cost a day: gtag loaded with the right property, posted
+    // to https://www.google.com/g/collect, and the browser refused. GA4 reports
+    // nothing and Tag Assistant still says the tag fired, so the only evidence
+    // is a console line nobody thinks to look at.
+    const connectSrc = directive(cspOf(), 'connect-src')
+
+    for (const origin of [
+      GA,
+      GA_WILDCARD,
+      'https://*.analytics.google.com',
+      'https://www.google.com',
+      'https://stats.g.doubleclick.net',
+    ]) {
+      expect(connectSrc).toContain(origin)
+    }
+  })
+
+  test('the ads collection origins also have their pixel form allowed', () => {
+    const imgSrc = directive(cspOf(), 'img-src')
+
+    expect(imgSrc).toContain('https://www.google.com')
+    expect(imgSrc).toContain('https://stats.g.doubleclick.net')
   })
 
   test('the meta CSP carries the same img-src allowlist as the HTTP one', () => {

@@ -69,8 +69,23 @@
  *    is where `@next/third-parties`'s `<GoogleAnalytics>` loads
  *    `gtag/js` from (`node_modules/@next/third-parties/dist/google/ga.js`
  *    sets `src: https://www.googletagmanager.com/gtag/js?id=...`).
- *  - `connect-src 'self' https://www.google-analytics.com
- *    https://*.google-analytics.com https://api.web3forms.com` —
+ *  - `connect-src` — every origin Google's own tag reaches, plus Web3Forms.
+ *
+ *    This list was originally written from what the *library* calls, and that
+ *    is the wrong question. GA4 does not send only to `google-analytics.com`:
+ *    with Google signals or Ads conversion measurement enabled it posts to
+ *    `www.google.com/g/collect` and `stats.g.doubleclick.net`, and it uses
+ *    regional `*.analytics.google.com` hosts depending on geography. Omitting
+ *    those produced a live site where gtag loaded with the correct property,
+ *    tried to send, and was silently refused -- nothing in GA4, nothing in Tag
+ *    Assistant, just no data.
+ *
+ *    **Known limit, not an oversight:** Google's ads cookie sync also hits
+ *    country TLDs (`www.google.co.uk`, `www.google.de`), and CSP cannot
+ *    wildcard a TLD. The default covers `www.google.com` only. A site
+ *    advertising outside the US adds its own through `connectSrc`/`imgSrc`.
+ *
+ *    The original note, still true of the rest:
  *    `'self'` for the app's own same-origin requests; the two
  *    google-analytics.com origins are where the loaded gtag.js library
  *    sends GA4 collection beacons (the wildcard covers the region-sharded
@@ -116,6 +131,15 @@
 const GOOGLE_TAG_MANAGER_ORIGIN = 'https://www.googletagmanager.com'
 const GOOGLE_ANALYTICS_ORIGIN = 'https://www.google-analytics.com'
 const GOOGLE_ANALYTICS_WILDCARD = 'https://*.google-analytics.com'
+// GA4's regional collection endpoints.
+const GOOGLE_ANALYTICS_REGIONAL = 'https://*.analytics.google.com'
+// Where GA4 posts when Google signals or Ads conversion measurement is in play.
+// Missing this is what produced "connect-src blocked https://www.google.com/g/collect"
+// on a live site: gtag loaded with the right property, tried to send, and the
+// browser refused. No error in GA4, no error in Tag Assistant -- just no data.
+const GOOGLE_ADS_COLLECT_ORIGIN = 'https://www.google.com'
+// Google signals' own collection host.
+const DOUBLECLICK_STATS_ORIGIN = 'https://stats.g.doubleclick.net'
 const WEB3FORMS_ORIGIN = 'https://api.web3forms.com'
 
 const HSTS_MAX_AGE_SECONDS = 63_072_000 // two years, the value securityheaders.com expects for full credit
@@ -193,8 +217,12 @@ function buildBaseCspDirectives(options: SecurityHeaderOptions = {}): readonly s
     "'self'",
     GOOGLE_ANALYTICS_ORIGIN,
     GOOGLE_ANALYTICS_WILDCARD,
+    GOOGLE_ANALYTICS_REGIONAL,
     // GTM's container fetch and its consent/config pings both go here.
     GOOGLE_TAG_MANAGER_ORIGIN,
+    // GA4 does not send only to google-analytics.com. See the constants.
+    GOOGLE_ADS_COLLECT_ORIGIN,
+    DOUBLECLICK_STATS_ORIGIN,
     WEB3FORMS_ORIGIN,
     ...normalizeOrigins(options.connectSrc),
   ].join(' ')
@@ -215,6 +243,8 @@ function buildBaseCspDirectives(options: SecurityHeaderOptions = {}): readonly s
     GOOGLE_TAG_MANAGER_ORIGIN,
     GOOGLE_ANALYTICS_ORIGIN,
     GOOGLE_ANALYTICS_WILDCARD,
+    GOOGLE_ADS_COLLECT_ORIGIN,
+    DOUBLECLICK_STATS_ORIGIN,
     ...normalizeOrigins(options.imgSrc),
   ].join(' ')
 
