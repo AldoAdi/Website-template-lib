@@ -74,6 +74,31 @@ export function denyConsent(): void {
 }
 
 /**
+ * Clears the stored decision and returns the visitor to `'unknown'`, which
+ * brings `CookieBanner` back.
+ *
+ * This exists for testing and for the debug overlay, not for site copy: a
+ * banner that reappears on its own after a decision is a dark pattern. It is
+ * here because the stored decision is otherwise invisible and unreachable --
+ * the banner hides itself once answered, so someone verifying a tag setup on
+ * a site they have already used sees no banner, concludes the consent gate is
+ * broken, and goes looking in the wrong place. That has now happened more
+ * than once.
+ */
+export function resetConsent(): void {
+  if (isBrowser()) {
+    try {
+      window.localStorage.removeItem(STORAGE_KEY)
+    } catch {
+      // Same storage caveats as `persist`: the in-memory notification below
+      // still has to happen, so subscribers re-render either way.
+    }
+  }
+
+  notify('unknown')
+}
+
+/**
  * Subscribes to consent changes, returning an unsubscribe function.
  * Components react to a decision without polling `getConsentState()`.
  */

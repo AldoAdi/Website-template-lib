@@ -1,6 +1,6 @@
 {
   "name": "@aldoadi/website-template",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": false,
   "type": "module",
   "description": "Shared Next.js component and utility library for marketing/content sites.",

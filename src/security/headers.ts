@@ -78,10 +78,22 @@
  *    depending on visitor geography); `api.web3forms.com` is the exact
  *    endpoint `useFormPost`'s `fetch` POSTs the contact form to
  *    (`src/components/form/ContactForm.tsx`'s `DEFAULT_ENDPOINT`).
- *  - `img-src 'self' data:` — `'self'` for whatever `/public` assets a
- *    consuming site adds (this library ships zero images itself, per
- *    SPEC.md); `data:` for small inline icons a consumer might pass
- *    through `next/image`.
+ *  - `img-src 'self' data: <googletagmanager> <google-analytics x2>` —
+ *    `'self'` for whatever `/public` assets a consuming site adds; `data:`
+ *    for small inline icons a consumer might pass through `next/image`.
+ *
+ *    The Google origins are here because of what this library's own
+ *    components *do*, not what it ships as files. An earlier version listed
+ *    only `'self' data:`, reasoning that the library ships zero images of
+ *    its own — true, and beside the point: `<GoogleTagManager>` causes the
+ *    browser to request `googletagmanager.com/td` (tag diagnostics) as an
+ *    image, and gtag falls back to an image beacon when `sendBeacon` and
+ *    `fetch` are both unavailable. That omission surfaced as a console
+ *    error on a live site, which is the wrong place to discover it.
+ *
+ *    The rule the fix encodes: an origin the library's own integrations
+ *    cause the browser to hit belongs in the default policy. `options.imgSrc`
+ *    is for the pixels a *consumer* adds on top (Google Ads, Meta).
  *  - `style-src 'self' 'unsafe-inline'` — Tailwind v4 compiles to a linked
  *    stylesheet and no component here writes a `style=` attribute, so the
  *    emitted HTML looks like it needs no exception. It does anyway:
@@ -194,7 +206,17 @@ function buildBaseCspDirectives(options: SecurityHeaderOptions = {}): readonly s
     ...normalizeOrigins(options.scriptSrc),
   ].join(' ')
 
-  const imgSrc = ["'self'", 'data:', ...normalizeOrigins(options.imgSrc)].join(' ')
+  const imgSrc = [
+    "'self'",
+    'data:',
+    // GTM pings /td (tag diagnostics) as an image, and gtag falls back to an
+    // image beacon when sendBeacon and fetch are both unavailable. Both are
+    // the library's own components talking, so both belong in the default.
+    GOOGLE_TAG_MANAGER_ORIGIN,
+    GOOGLE_ANALYTICS_ORIGIN,
+    GOOGLE_ANALYTICS_WILDCARD,
+    ...normalizeOrigins(options.imgSrc),
+  ].join(' ')
 
   return [
     "default-src 'self'",

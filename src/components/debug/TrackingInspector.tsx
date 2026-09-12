@@ -5,6 +5,7 @@ import {
   getConsentState,
   onAnalyticsEvent,
   onConsentChange,
+  resetConsent,
   resolveTransport,
 } from '../../analytics'
 import type { AnalyticsRecord, AnalyticsTransport, ConsentState } from '../../analytics'
@@ -165,6 +166,13 @@ export function TrackingInspector({
           <span className="font-mono font-normal">
             {transport} · consent:{consent} · dataLayer:{dataLayerSize}
           </span>
+          {/* The most common answer to "why is nothing firing" is that consent
+              was answered once, weeks ago, and the banner has hidden itself
+              ever since. Reaching that decision otherwise means a devtools
+              trip to localStorage. */}
+          <button type="button" className={TOGGLE_CLASSES} onClick={resetConsent}>
+            Reset consent
+          </button>
           <button type="button" className={TOGGLE_CLASSES} onClick={() => setIsOpen(false)}>
             Hide
           </button>

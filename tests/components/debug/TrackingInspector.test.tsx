@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { act, cleanup, render, screen } from '@testing-library/react'
-import { grantConsent } from '../../../src/analytics/consent'
+import { denyConsent, getConsentState, grantConsent } from '../../../src/analytics/consent'
 import { track } from '../../../src/analytics'
 import { TrackingInspector } from '../../../src/components/debug/TrackingInspector'
 import { findAxeViolations } from '../../axeHelpers'
@@ -168,5 +168,38 @@ describe('TrackingInspector', () => {
     })
 
     expect(await findAxeViolations(container)).toEqual([])
+  })
+})
+
+describe('TrackingInspector consent control', () => {
+  function openInspector() {
+    window.history.replaceState({}, '', '/?debug=tracking')
+    return render(<TrackingInspector defaultOpen />)
+  }
+
+  test('offers a reset that returns the visitor to an undecided state', () => {
+    grantConsent()
+    expect(getConsentState()).toBe('granted')
+
+    openInspector()
+
+    act(() => {
+      screen.getByRole('button', { name: 'Reset consent' }).click()
+    })
+
+    expect(getConsentState()).toBe('unknown')
+  })
+
+  test('the reset is reflected in the panel without a reload', () => {
+    denyConsent()
+    openInspector()
+
+    expect(screen.getByText(/consent:denied/)).toBeDefined()
+
+    act(() => {
+      screen.getByRole('button', { name: 'Reset consent' }).click()
+    })
+
+    expect(screen.getByText(/consent:unknown/)).toBeDefined()
   })
 })
