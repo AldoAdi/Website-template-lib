@@ -81,4 +81,10 @@
     outline: 2px solid var(--color-ring);
     outline-offset: 2px;
   }
+
+  /* CookieBanner parks focus on <main tabindex="-1"> when it unmounts; a
+     page-sized ring around the whole content is noise, not an indicator. */
+  main[tabindex='-1']:focus-visible {
+    outline: none;
+  }
 }

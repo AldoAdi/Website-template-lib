@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react'
 import type { FormEvent, ReactElement } from 'react'
+import { flushSync } from 'react-dom'
 import { Field } from './Field'
 import type { FieldElement } from './Field'
 import { useFormPost } from './useFormPost'
@@ -122,8 +123,13 @@ export function ContactForm({
 
     const result = validateContactSubmission(values)
     if (!result.success) {
-      setFieldErrors(result.errors)
-      setTouchedFields(new Set(FIELD_ORDER))
+      // Committed synchronously so `aria-describedby` is already on the
+      // control when focus lands below -- otherwise the screen reader
+      // announces the field before its error exists.
+      flushSync(() => {
+        setFieldErrors(result.errors)
+        setTouchedFields(new Set(FIELD_ORDER))
+      })
       // Move focus to the first invalid control, in field order: that
       // announces its error via aria-describedby without needing a
       // role="alert" on every field at once.

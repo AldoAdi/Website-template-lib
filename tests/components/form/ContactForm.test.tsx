@@ -257,6 +257,21 @@ describe('ContactForm touched-field error display', () => {
     await screen.findByText(/enter a valid email address/i)
     expect(document.activeElement).toBe(screen.getByLabelText(/^email/i))
   })
+
+  test('the focused control already carries its error when focus lands, so it is announced', () => {
+    vi.stubGlobal('fetch', vi.fn())
+    render(<ContactForm accessKey={ACCESS_KEY} />)
+
+    const nameInput = screen.getByLabelText(/^name/i)
+    let describedByAtFocus: string | null = null
+    nameInput.addEventListener('focus', () => {
+      describedByAtFocus = nameInput.getAttribute('aria-describedby')
+    })
+
+    submitForm()
+
+    expect(describedByAtFocus).not.toBeNull()
+  })
 })
 
 describe('ContactForm required field markers', () => {
