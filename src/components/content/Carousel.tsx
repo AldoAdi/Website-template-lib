@@ -121,7 +121,12 @@ export function Carousel({
         onScroll={syncEdges}
       >
         {items.map((item, index) => (
-          <li key={index} className={`shrink-0 snap-start ${BASIS_BY_VISIBLE[visible]}`}>
+          // `relative` gives absolutely positioned slide content (the
+          // `sr-only` rating in `Testimonial`) a containing block inside the
+          // track. Without it that content resolves against an ancestor
+          // outside the scroller, escapes its clipping, and widens the page
+          // into a sideways scroll.
+          <li key={index} className={`relative shrink-0 snap-start ${BASIS_BY_VISIBLE[visible]}`}>
             {item}
           </li>
         ))}

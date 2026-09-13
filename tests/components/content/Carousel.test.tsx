@@ -27,6 +27,14 @@ describe('Carousel', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(3)
   })
 
+  test('positions each slide so absolutely positioned content (e.g. sr-only text) stays inside the track', () => {
+    render(<Carousel items={ITEMS} label="Patient reviews" />)
+
+    for (const slide of screen.getAllByRole('listitem')) {
+      expect(slide.className.split(' ')).toContain('relative')
+    }
+  })
+
   test('makes the scrollable track reachable by keyboard', () => {
     render(<Carousel items={ITEMS} label="Patient reviews" />)
 
