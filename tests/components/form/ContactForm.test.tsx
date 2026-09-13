@@ -210,7 +210,7 @@ describe('ContactForm', () => {
 })
 
 describe('ContactForm touched-field error display', () => {
-  test('blurring an empty field while leaving the others untouched only shows that field\'s error', () => {
+  test("blurring an empty field while leaving the others untouched only shows that field's error", () => {
     const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
     render(<ContactForm accessKey={ACCESS_KEY} />)
