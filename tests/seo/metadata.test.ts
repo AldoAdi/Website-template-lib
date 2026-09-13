@@ -180,3 +180,29 @@ describe('buildMetadata', () => {
     expect(metadata.openGraph).toMatchObject({ images: [{ url: 'https://example.com/page.png' }] })
   })
 })
+
+describe('metadataBase', () => {
+  test('is set, so a relative share image never resolves to localhost', () => {
+    const metadata = buildMetadata(SITE)
+
+    expect(metadata.metadataBase?.toString()).toBe('https://example.com/')
+  })
+
+  test('is the origin alone, so a basePath is not emitted twice', () => {
+    // Next applies the basePath to the opengraph-image path itself. A base
+    // that already carried it would produce /site/site/opengraph-image.jpg.
+    const metadata = buildMetadata({ ...SITE, basePath: '/my-site' })
+
+    expect(new URL(metadata.metadataBase as URL).pathname).toBe('/')
+  })
+
+  test('discards any path a site URL was written with', () => {
+    const metadata = buildMetadata({ ...SITE, siteUrl: 'https://example.com/some/path' })
+
+    expect(metadata.metadataBase?.toString()).toBe('https://example.com/')
+  })
+
+  test('fails the build on a site URL that is not absolute', () => {
+    expect(() => buildMetadata({ ...SITE, siteUrl: 'example.com' })).toThrow()
+  })
+})

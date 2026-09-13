@@ -66,6 +66,19 @@ export function buildCanonicalUrl(
   return combined === '' ? base : combined
 }
 
+/**
+ * The origin of a site URL, with any path, query or fragment discarded.
+ *
+ * `metadataBase` is a base for resolution rather than a location, so a
+ * `siteUrl` written as `https://example.com/` or even
+ * `https://example.com/some/path` has to reduce to the origin before it can
+ * serve as one. Throws on a value that is not an absolute URL -- at build
+ * time, where it is cheap to fix, rather than silently shipping localhost.
+ */
+function toOrigin(siteUrl: string): string {
+  return new URL(siteUrl).origin
+}
+
 function stripTrailingSlashes(value: string): string {
   return value.replace(/\/+$/, '')
 }
@@ -107,6 +120,19 @@ export function buildMetadata(site: SiteMetadataConfig, page: PageMetadataInput 
   return {
     title: { template: titleTemplate, default: title },
     description,
+    // Origin only, deliberately -- not the canonical, and not the
+    // basePath-prefixed root.
+    //
+    // Next resolves every relative URL in the metadata against this,
+    // including the `opengraph-image` file convention, and it applies the
+    // basePath to that file's path itself. Handing it a base that already
+    // carried the basePath would emit the segment twice.
+    //
+    // Without it, Next has no origin to resolve against and falls back to
+    // `http://localhost:3000`, so a deployed site advertises a localhost
+    // share image and every link anyone posts renders blank. The build says
+    // nothing louder than a warning about it.
+    metadataBase: new URL(toOrigin(site.siteUrl)),
     alternates: { canonical: canonicalUrl },
     openGraph: buildOpenGraph({ title, description, url: canonicalUrl, site, image, locale }),
     twitter: buildTwitter({ title, description, image, twitterHandle: site.twitterHandle }),
