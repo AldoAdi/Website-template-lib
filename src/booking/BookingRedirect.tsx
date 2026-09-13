@@ -69,29 +69,39 @@ export function BookingRedirect({
   redirectDelayMs = DEFAULT_REDIRECT_DELAY_MS,
   className,
 }: BookingRedirectProps): ReactElement {
-  const hasRun = useRef(false)
+  const hasRecorded = useRef(false)
+  const urlRef = useRef<string | null>(null)
   const [destination, setDestination] = useState<string | null>(null)
   const activeSinks = sinks ?? getBookingSinks()
 
   useEffect(() => {
-    // React StrictMode runs effects twice in development. Without this
-    // guard the funnel would report two handoffs for every real one, and
-    // the bug would only exist in dev -- the worst kind to chase.
-    if (hasRun.current) return
-    hasRun.current = true
+    // React StrictMode mounts, cleans up, and remounts every effect in
+    // development. Recording is guarded by a ref so the funnel still sees
+    // exactly one view and one handoff, but the redirect timer below is NOT
+    // guarded the same way: StrictMode's cleanup for the first run clears
+    // its timer, so only a timer scheduled on *every* run -- including the
+    // surviving one -- ever fires. The same reasoning covers a real prop
+    // change mid-delay, not just StrictMode's synthetic double run.
+    if (!hasRecorded.current) {
+      hasRecorded.current = true
 
-    recordBookingStep('booking_view', activeSinks, { captureFromUrl: true })
+      recordBookingStep('booking_view', activeSinks, { captureFromUrl: true })
 
-    const url = buildBookingUrl({
-      providerUrl,
-      visitorId: getVisitorId(),
-      sessionId: getSessionId(),
-      lastTouch: getAttribution().lastTouch,
-      ...(forwardUtm !== undefined ? { forwardUtm } : {}),
-    })
-    setDestination(url)
+      const url = buildBookingUrl({
+        providerUrl,
+        visitorId: getVisitorId(),
+        sessionId: getSessionId(),
+        lastTouch: getAttribution().lastTouch,
+        ...(forwardUtm !== undefined ? { forwardUtm } : {}),
+      })
+      urlRef.current = url
+      setDestination(url)
 
-    recordBookingStep('booking_handoff', activeSinks)
+      recordBookingStep('booking_handoff', activeSinks)
+    }
+
+    const url = urlRef.current
+    if (url === null) return undefined
 
     // `replace`, not `assign`: the interstitial must not sit in history, or
     // Back from the scheduler bounces the visitor straight into it again.

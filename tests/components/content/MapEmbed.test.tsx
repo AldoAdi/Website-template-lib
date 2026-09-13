@@ -1,7 +1,12 @@
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 import { cleanup, render, screen, fireEvent, act } from '@testing-library/react'
 import { MapEmbed } from '../../../src/components/content/MapEmbed'
-import { grantConsent, resetConsent, setConsentCategories } from '../../../src/analytics/consent'
+import {
+  getConsentCategories,
+  grantConsent,
+  resetConsent,
+  setConsentCategories,
+} from '../../../src/analytics/consent'
 import { findAxeViolations } from '../../axeHelpers'
 
 const PROPS = {
@@ -80,6 +85,27 @@ describe('MapEmbed', () => {
     const { container } = render(<MapEmbed {...PROPS} requireConsentFor={null} />)
 
     expect(container.querySelector('iframe')?.getAttribute('loading')).toBe('lazy')
+  })
+
+  test('grants only the required category, not every category, on "Allow and show map"', () => {
+    render(<MapEmbed {...PROPS} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /allow and show map/i }))
+
+    expect(getConsentCategories()).toEqual(
+      expect.objectContaining({ marketing: true, statistics: false }),
+    )
+  })
+
+  test('preserves an existing grant while adding the caller-chosen category', () => {
+    render(<MapEmbed {...PROPS} requireConsentFor="preferences" />)
+
+    fireEvent.click(screen.getByRole('button', { name: /allow and show map/i }))
+
+    expect(getConsentCategories()).toEqual(
+      expect.objectContaining({ preferences: true, statistics: false, marketing: false }),
+    )
+    expect(screen.getByTitle(PROPS.title)).toBeDefined()
   })
 
   // Only the placeholder is checked with axe: axe-core refuses to scan a

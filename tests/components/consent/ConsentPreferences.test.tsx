@@ -1,7 +1,15 @@
+import { act } from 'react'
+import { renderToString } from 'react-dom/server'
+import { hydrateRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { cleanup, render, screen, fireEvent } from '@testing-library/react'
 import { ConsentPreferences } from '../../../src/components/consent/ConsentPreferences'
-import { getConsentCategories, getConsentState, resetConsent } from '../../../src/analytics/consent'
+import {
+  getConsentCategories,
+  getConsentState,
+  grantConsent,
+  resetConsent,
+} from '../../../src/analytics/consent'
 import { findAxeViolations } from '../../axeHelpers'
 
 beforeEach(() => {
@@ -87,6 +95,29 @@ describe('ConsentPreferences', () => {
     expect(screen.getByRole('checkbox', { name: /statistik/i })).toBeDefined()
     expect(screen.getByText('Anonyme Zählungen.')).toBeDefined()
     expect(screen.getByRole('button', { name: 'Speichern' })).toBeDefined()
+  })
+
+  test('hydrates to match a decision already stored, not the server-safe default', async () => {
+    const html = renderToString(<ConsentPreferences />)
+    grantConsent()
+
+    const container = document.createElement('div')
+    container.innerHTML = html
+    document.body.appendChild(container)
+
+    const root = hydrateRoot(container, <ConsentPreferences />)
+    await act(async () => {})
+
+    try {
+      const inputs = container.querySelectorAll('input')
+      expect(inputs.length).toBe(4)
+      for (const input of inputs) {
+        expect((input as HTMLInputElement).checked).toBe(true)
+      }
+    } finally {
+      root.unmount()
+      container.remove()
+    }
   })
 
   test('has no axe violations', async () => {

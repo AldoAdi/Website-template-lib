@@ -2,7 +2,7 @@
 
 import type { ReactElement } from 'react'
 import { useConsentFor } from '../../analytics/useConsentState'
-import { grantConsent } from '../../analytics/consent'
+import { getConsentCategories, setConsentCategories } from '../../analytics/consent'
 import type { ConsentCategory } from '../../analytics/consent'
 
 export interface MapEmbedProps {
@@ -67,6 +67,13 @@ export function MapEmbed({
   const isGranted = useConsentFor(requireConsentFor ?? 'functional')
   const isAllowed = requireConsentFor === null || isGranted
 
+  // Only reached when `requireConsentFor` is non-null (see `isAllowed`
+  // above), so the placeholder's button always has a real category to grant.
+  function allowMap(): void {
+    if (requireConsentFor === null) return
+    setConsentCategories({ ...getConsentCategories(), [requireConsentFor]: true })
+  }
+
   if (!isAllowed) {
     return (
       <div className={className ? `${PLACEHOLDER_CLASSES} ${className}` : PLACEHOLDER_CLASSES}>
@@ -85,7 +92,7 @@ export function MapEmbed({
           </a>
           <button
             type="button"
-            onClick={grantConsent}
+            onClick={allowMap}
             className="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium"
           >
             Allow and show map

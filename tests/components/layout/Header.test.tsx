@@ -1,8 +1,13 @@
-import { afterEach, beforeEach, describe, expect, test } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { cleanup, render, screen, fireEvent } from '@testing-library/react'
 import { ThemeProvider as NextThemesProvider } from 'next-themes'
+import { usePathname } from 'next/navigation'
 import { Header } from '../../../src/components/layout/Header'
 import { mockMatchMedia } from '../../theme/testHelpers'
+
+vi.mock('next/navigation', () => ({
+  usePathname: vi.fn(() => '/'),
+}))
 
 const LINKS = [
   { label: 'Home', href: '/' },
@@ -24,6 +29,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
+  vi.mocked(usePathname).mockReturnValue('/')
 })
 
 describe('Header', () => {
@@ -101,6 +107,53 @@ describe('Header', () => {
       const disclosure = getDisclosureButton()
       fireEvent.click(disclosure)
       fireEvent.click(disclosure)
+
+      expect(disclosure.getAttribute('aria-expanded')).toBe('false')
+    })
+
+    test('closes the panel when the pathname changes, e.g. a client-side navigation', () => {
+      vi.mocked(usePathname).mockReturnValue('/')
+      const { rerender } = renderHeader()
+
+      const disclosure = getDisclosureButton()
+      fireEvent.click(disclosure)
+      expect(disclosure.getAttribute('aria-expanded')).toBe('true')
+
+      vi.mocked(usePathname).mockReturnValue('/about')
+      rerender(
+        <NextThemesProvider attribute="class" defaultTheme="light" enableSystem>
+          <Header logo={<span>Acme</span>} links={LINKS} />
+        </NextThemesProvider>,
+      )
+
+      expect(disclosure.getAttribute('aria-expanded')).toBe('false')
+    })
+
+    test('Escape inside the open panel closes it and returns focus to the disclosure button', () => {
+      renderHeader()
+
+      const disclosure = getDisclosureButton()
+      fireEvent.click(disclosure)
+
+      const controlledId = disclosure.getAttribute('aria-controls') as string
+      const panel = document.getElementById(controlledId) as HTMLElement
+      const link = panel.querySelector('a[href="/"]') as HTMLElement
+      link.focus()
+
+      fireEvent.keyDown(panel, { key: 'Escape' })
+
+      expect(disclosure.getAttribute('aria-expanded')).toBe('false')
+      expect(document.activeElement).toBe(disclosure)
+    })
+
+    test('Escape with focus still on the disclosure button closes the panel', () => {
+      renderHeader()
+
+      const disclosure = getDisclosureButton()
+      fireEvent.click(disclosure)
+      disclosure.focus()
+
+      fireEvent.keyDown(disclosure, { key: 'Escape' })
 
       expect(disclosure.getAttribute('aria-expanded')).toBe('false')
     })

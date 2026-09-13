@@ -1,7 +1,8 @@
 'use client'
 
-import { Fragment, useId, useState } from 'react'
+import { Fragment, useId, useRef, useState } from 'react'
 import type { ReactElement, ReactNode } from 'react'
+import { usePathname } from 'next/navigation'
 import { ThemeToggle } from '../../theme/ThemeToggle'
 import { MegaMenu } from '../nav/MegaMenu'
 import { MobileNavTree } from '../nav/MobileNavTree'
@@ -114,13 +115,34 @@ export function Header({
 }: HeaderProps): ReactElement {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const navId = useId()
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
+
+  // Closes the mobile panel across a client-side navigation, which swaps
+  // the page under this persistent header without ever unmounting it.
+  // Adjusting state during render -- rather than in an effect -- is the
+  // pattern React's docs recommend for "reset state when a prop changes",
+  // and it is what `MegaMenu` does for the same reason.
+  const pathname = usePathname()
+  const [lastPathname, setLastPathname] = useState(pathname)
+  if (pathname !== lastPathname) {
+    setLastPathname(pathname)
+    setIsMenuOpen(false)
+  }
+
+  // On the whole header, not just the panel: right after opening, focus is
+  // still on the disclosure button, which sits outside the panel.
+  function onHeaderKeyDown(event: React.KeyboardEvent<HTMLElement>): void {
+    if (event.key !== 'Escape' || !isMenuOpen) return
+    setIsMenuOpen(false)
+    menuButtonRef.current?.focus()
+  }
 
   const classes = [HEADER_CLASSES, sticky ? STICKY_CLASSES : '', className ?? '']
     .filter(Boolean)
     .join(' ')
 
   return (
-    <header className={classes}>
+    <header className={classes} onKeyDown={onHeaderKeyDown}>
       {topBar ? (
         <div className="border-border bg-secondary text-secondary-foreground border-b text-sm">
           <Container className="flex h-9 items-center justify-between gap-4">{topBar}</Container>
@@ -157,6 +179,7 @@ export function Header({
           <ThemeToggle />
           <button
             type="button"
+            ref={menuButtonRef}
             className={DISCLOSURE_BUTTON_CLASSES}
             aria-expanded={isMenuOpen}
             aria-controls={navId}
