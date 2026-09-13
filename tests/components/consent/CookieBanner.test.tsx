@@ -122,6 +122,17 @@ describe('CookieBanner preferences panel', () => {
     expect(document.getElementById(panelId)).not.toBeNull()
   })
 
+  test('aria-controls names a real element even while collapsed, not a missing id', () => {
+    render(<CookieBanner />)
+
+    const disclosure = screen.getByRole('button', { name: /manage preferences/i })
+    const panelId = disclosure.getAttribute('aria-controls') as string
+    const panel = document.getElementById(panelId)
+
+    expect(panel).not.toBeNull()
+    expect(panel?.hasAttribute('hidden')).toBe(true)
+  })
+
   test('saving a granular decision dismisses the banner', () => {
     render(<CookieBanner />)
 

@@ -28,7 +28,10 @@ export interface CTAProps {
   readonly className?: string
 }
 
-const CTA_CLASSES = 'bg-primary text-primary-foreground'
+// `--color-ring` equals `--color-primary`, which is this band's own
+// background -- the default focus outline would be invisible against it, so
+// descendants get the outline in `--color-primary-foreground` instead.
+const CTA_CLASSES = 'bg-primary text-primary-foreground [&_:focus-visible]:outline-primary-foreground'
 
 /** Exported so a caller filling `actionSlot` can match the button it replaces. */
 export const CTA_ACTION_CLASSES =

@@ -17,9 +17,9 @@ function setNow(value: number): void {
 }
 
 function fillValidForm(): void {
-  fireEvent.change(screen.getByLabelText(/^name$/i), { target: { value: 'Ada Lovelace' } })
-  fireEvent.change(screen.getByLabelText(/^email$/i), { target: { value: 'ada@example.com' } })
-  fireEvent.change(screen.getByLabelText(/^message$/i), {
+  fireEvent.change(screen.getByLabelText(/^name/i), { target: { value: 'Ada Lovelace' } })
+  fireEvent.change(screen.getByLabelText(/^email/i), { target: { value: 'ada@example.com' } })
+  fireEvent.change(screen.getByLabelText(/^message/i), {
     target: { value: 'Hello, I would like to know more about your services.' },
   })
 }
@@ -65,7 +65,7 @@ describe('ContactForm', () => {
     submitForm()
     await screen.findByText(/name is required/i)
 
-    const nameInput = screen.getByLabelText(/^name$/i)
+    const nameInput = screen.getByLabelText(/^name/i)
     const describedBy = nameInput.getAttribute('aria-describedby')
 
     expect(nameInput.getAttribute('aria-invalid')).toBe('true')
@@ -137,9 +137,9 @@ describe('ContactForm', () => {
     submitForm()
 
     expect(await screen.findByText(/something went wrong/i)).toBeDefined()
-    expect((screen.getByLabelText(/^name$/i) as HTMLInputElement).value).toBe('Ada Lovelace')
-    expect((screen.getByLabelText(/^email$/i) as HTMLInputElement).value).toBe('ada@example.com')
-    expect((screen.getByLabelText(/^message$/i) as HTMLTextAreaElement).value).toBe(
+    expect((screen.getByLabelText(/^name/i) as HTMLInputElement).value).toBe('Ada Lovelace')
+    expect((screen.getByLabelText(/^email/i) as HTMLInputElement).value).toBe('ada@example.com')
+    expect((screen.getByLabelText(/^message/i) as HTMLTextAreaElement).value).toBe(
       'Hello, I would like to know more about your services.',
     )
   })
@@ -182,5 +182,69 @@ describe('ContactForm', () => {
     const violations = await findAxeViolations(container)
 
     expect(violations).toEqual([])
+  })
+})
+
+describe('ContactForm touched-field error display', () => {
+  test('blurring an empty field while leaving the others untouched only shows that field\'s error', () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+    render(<ContactForm accessKey={ACCESS_KEY} />)
+
+    fireEvent.blur(screen.getByLabelText(/^name/i))
+
+    expect(screen.getByText(/name is required/i)).toBeDefined()
+    expect(screen.queryByText(/enter a valid email address/i)).toBeNull()
+    expect(screen.queryByText(/message is required/i)).toBeNull()
+  })
+
+  test('a failed submit shows errors on every invalid field', async () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+    render(<ContactForm accessKey={ACCESS_KEY} />)
+
+    submitForm()
+
+    expect(await screen.findByText(/name is required/i)).toBeDefined()
+    expect(screen.getByText(/enter a valid email address/i)).toBeDefined()
+    expect(screen.getByText(/message is required/i)).toBeDefined()
+  })
+
+  test('field errors are not role="alert", so a failed submit does not announce three alerts at once', async () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+    render(<ContactForm accessKey={ACCESS_KEY} />)
+
+    submitForm()
+    await screen.findByText(/name is required/i)
+
+    expect(screen.queryAllByRole('alert')).toHaveLength(0)
+  })
+
+  test('a failed submit moves focus to the first invalid control, in field order', async () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+    render(<ContactForm accessKey={ACCESS_KEY} />)
+
+    // Name is valid, so Email -- the next field in order -- is the first invalid one.
+    fireEvent.change(screen.getByLabelText(/^name/i), { target: { value: 'Ada Lovelace' } })
+    submitForm()
+
+    await screen.findByText(/enter a valid email address/i)
+    expect(document.activeElement).toBe(screen.getByLabelText(/^email/i))
+  })
+})
+
+describe('ContactForm required field markers', () => {
+  test('marks the required fields with a visible, aria-hidden asterisk', () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+    const { container } = render(<ContactForm accessKey={ACCESS_KEY} />)
+
+    const markers = container.querySelectorAll('label span[aria-hidden="true"]')
+    expect(markers).toHaveLength(3)
+    for (const marker of Array.from(markers)) {
+      expect(marker.textContent).toContain('*')
+    }
   })
 })

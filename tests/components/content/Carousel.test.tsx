@@ -3,11 +3,13 @@ import { cleanup, render, screen, fireEvent, act } from '@testing-library/react'
 import { Carousel } from '../../../src/components/content/Carousel'
 import { fakeScrollMetrics, stubResizeObserver } from '../../browserStubs'
 import { findAxeViolations } from '../../axeHelpers'
+import { mockMatchMedia } from '../../theme/testHelpers'
 
 const ITEMS = [<p key="a">First</p>, <p key="b">Second</p>, <p key="c">Third</p>]
 
 beforeEach(() => {
   stubResizeObserver()
+  mockMatchMedia(false)
 })
 
 afterEach(() => {
@@ -75,6 +77,23 @@ describe('Carousel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next' }))
 
     expect(scrollBy).toHaveBeenCalledWith({ left: 300, behavior: 'smooth' })
+  })
+
+  test('jumps instead of scrolling smoothly under prefers-reduced-motion', () => {
+    mockMatchMedia(true)
+    render(<Carousel items={ITEMS} label="Patient reviews" />)
+
+    const track = screen.getByRole('list', { name: 'Patient reviews' })
+    fakeScrollMetrics(track, { scrollLeft: 0, clientWidth: 300, scrollWidth: 900 })
+    const scrollBy = vi.fn()
+    track.scrollBy = scrollBy as unknown as typeof track.scrollBy
+    act(() => {
+      fireEvent.scroll(track)
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+
+    expect(scrollBy).toHaveBeenCalledWith({ left: 300, behavior: 'auto' })
   })
 
   test('treats a near-miss of the far edge as the end, not as more to scroll', () => {
