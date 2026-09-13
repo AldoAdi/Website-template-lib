@@ -82,6 +82,7 @@ export function MapEmbed({
             className="border-border rounded-md border px-4 py-2 text-sm font-medium"
           >
             Open in maps
+            <span className="sr-only"> (opens in new tab)</span>
           </a>
           <button
             type="button"

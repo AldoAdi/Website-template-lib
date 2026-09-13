@@ -35,7 +35,7 @@ const EMPTY_SUBMISSION: RawContactSubmission = { name: '', email: '', message: '
 
 const FORM_CLASSES = 'flex flex-col gap-gutter'
 const SUBMIT_BUTTON_CLASSES =
-  'rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60'
+  'rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground aria-disabled:opacity-60'
 // Off-screen, out of tab order, and hidden from assistive tech -- a real
 // visitor never sees or reaches this field, only an automated filler would.
 const HONEYPOT_WRAPPER_CLASSES = 'absolute left-[-9999px] top-auto h-px w-px overflow-hidden'
@@ -93,6 +93,11 @@ export function ContactForm({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault()
+
+    // The button stays a real `disabled=false` element while submitting (see
+    // SUBMIT_BUTTON_CLASSES) so focus is never dropped to <body>; this guard
+    // is what stops a second Enter/click from posting twice in its place.
+    if (isSubmitting) return
 
     const result = validateContactSubmission(values)
     if (!result.success) {
@@ -178,7 +183,7 @@ export function ContactForm({
           onChange={(event) => setHoneypotValue(event.target.value)}
         />
       </div>
-      <button type="submit" disabled={isSubmitting} className={SUBMIT_BUTTON_CLASSES}>
+      <button type="submit" aria-disabled={isSubmitting} className={SUBMIT_BUTTON_CLASSES}>
         {isSubmitting ? 'Sending…' : submitLabel}
       </button>
       <p role="status" aria-live="polite" className="text-sm">

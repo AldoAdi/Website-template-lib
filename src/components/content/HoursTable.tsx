@@ -42,8 +42,8 @@ export function HoursTable({
     <table className={classes}>
       <caption className="mb-3 text-left font-semibold">{caption}</caption>
       <tbody className="divide-border divide-y">
-        {rows.map((row) => (
-          <tr key={row.days} className={row.closed ? 'text-muted-foreground' : undefined}>
+        {rows.map((row, index) => (
+          <tr key={`${index}-${row.days}`} className={row.closed ? 'text-muted-foreground' : undefined}>
             <th scope="row" className="py-2 pr-4 text-left font-normal">
               {row.days}
             </th>

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from 'vitest'
+import { afterEach, describe, expect, test, vi } from 'vitest'
 import { cleanup, render, screen, fireEvent } from '@testing-library/react'
 import { MegaMenu } from '../../../src/components/nav/MegaMenu'
 import type { NavItem } from '../../../src/components/nav/types'
@@ -118,5 +118,54 @@ describe('MegaMenu', () => {
     fireEvent.click(screen.getByRole('button', { name: /services/i }))
 
     expect(await findAxeViolations(container)).toEqual([])
+  })
+
+  test('a top-level item with neither href nor sub-items renders as a plain label, not a link', () => {
+    render(<MegaMenu items={[{ label: 'Resources' }]} />)
+
+    expect(screen.queryByRole('link', { name: 'Resources' })).toBeNull()
+    expect(screen.getByText('Resources')).toBeDefined()
+  })
+
+  test('a leaf sub-item with no href renders as a plain label, not a link', () => {
+    const itemsWithLabelLeaf: readonly NavItem[] = [
+      {
+        label: 'Services',
+        items: [{ label: 'General dentistry', items: [{ label: 'Fluoride treatments' }] }],
+      },
+    ]
+    render(<MegaMenu items={itemsWithLabelLeaf} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /services/i }))
+
+    expect(screen.queryByRole('link', { name: 'Fluoride treatments' })).toBeNull()
+    expect(screen.getByText('Fluoride treatments')).toBeDefined()
+  })
+
+  test('duplicate leaf labels within one panel column emit no React key warning', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const itemsWithDuplicateLeaves: readonly NavItem[] = [
+      {
+        label: 'Services',
+        items: [
+          {
+            label: 'General dentistry',
+            items: [
+              { label: 'Overview', href: '/a' },
+              { label: 'Overview', href: '/b' },
+            ],
+          },
+        ],
+      },
+    ]
+    render(<MegaMenu items={itemsWithDuplicateLeaves} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /services/i }))
+
+    const keyWarning = consoleError.mock.calls.some((call) =>
+      String(call[0]).includes('unique "key" prop'),
+    )
+    expect(keyWarning).toBe(false)
+    consoleError.mockRestore()
   })
 })
