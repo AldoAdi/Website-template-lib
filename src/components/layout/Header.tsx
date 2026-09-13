@@ -76,8 +76,14 @@ const MOBILE_PANEL_CLASSES =
   'border-border bg-background absolute inset-x-0 top-full z-40 max-h-[70vh] overflow-y-auto border-b border-t py-2 shadow-lg'
 
 // Visible below `md`, hidden at `md` and up -- the disclosure button only
-// makes sense once the inline nav is collapsed.
-const DISCLOSURE_BUTTON_CLASSES = 'md:hidden'
+// makes sense once the inline nav is collapsed. Text styling matches the
+// nav's own links so an unstyled default control doesn't stand out as
+// obviously unfinished next to them.
+const DISCLOSURE_BUTTON_CLASSES = 'text-sm font-medium hover:text-primary md:hidden'
+
+// ThemeToggle ships with no default styling of its own (see ThemeToggle.tsx);
+// this keeps it visually consistent with the rest of the header's controls.
+const THEME_TOGGLE_CLASSES = 'text-sm font-medium hover:text-primary'
 
 /**
  * Site header landmark: optional utility bar, brand slot, primary
@@ -176,7 +182,7 @@ export function Header({
             created here, with a constant key, ends that.
           */}
           <Fragment key="actions">{actions}</Fragment>
-          <ThemeToggle />
+          <ThemeToggle className={THEME_TOGGLE_CLASSES} />
           <button
             type="button"
             ref={menuButtonRef}

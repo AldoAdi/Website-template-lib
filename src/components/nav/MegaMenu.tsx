@@ -26,6 +26,9 @@ const PANEL_LEFT_CLASSES = 'left-0'
 const PANEL_RIGHT_CLASSES = 'right-0 left-auto'
 
 const COLUMN_LINK_CLASSES = 'hover:text-primary block py-1 text-sm'
+// Same metrics as COLUMN_LINK_CLASSES, minus the hover affordance a
+// non-interactive label should not carry.
+const COLUMN_LABEL_CLASSES = 'block py-1 text-sm'
 
 /**
  * Desktop primary navigation with mega-menu panels.
@@ -141,10 +144,17 @@ export function MegaMenu({ items, className }: MegaMenuProps): ReactElement {
       {items.map((item, index) => {
         if (!hasSubItems(item)) {
           return (
-            <li key={item.label}>
-              <Link href={item.href ?? '#'} className="hover:text-primary py-2 text-sm font-medium">
-                {item.label}
-              </Link>
+            <li key={`${index}-${item.label}`}>
+              {item.href ? (
+                <Link
+                  href={item.href}
+                  className="hover:text-primary py-2 text-sm font-medium"
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <span className="py-2 text-sm font-medium">{item.label}</span>
+              )}
             </li>
           )
         }
@@ -156,7 +166,7 @@ export function MegaMenu({ items, className }: MegaMenuProps): ReactElement {
 
         return (
           <li
-            key={item.label}
+            key={`${index}-${item.label}`}
             className="relative"
             onPointerEnter={(event) => onTriggerPointerEnter(item.label, event.pointerType)}
           >
@@ -202,8 +212,8 @@ function MegaMenuPanel({ item }: { readonly item: NavItem }): ReactElement {
 
   return (
     <ul className="grid grid-cols-2 gap-x-8 gap-y-4 lg:grid-cols-3">
-      {subItems.map((child) => (
-        <li key={child.label}>
+      {subItems.map((child, index) => (
+        <li key={`${index}-${child.label}`}>
           {child.href ? (
             <Link
               href={child.href}
@@ -219,11 +229,15 @@ function MegaMenuPanel({ item }: { readonly item: NavItem }): ReactElement {
           ) : null}
           {hasSubItems(child) ? (
             <ul className="text-muted-foreground mt-2">
-              {(child.items ?? []).map((leaf) => (
-                <li key={leaf.label}>
-                  <Link href={leaf.href ?? '#'} className={COLUMN_LINK_CLASSES}>
-                    {leaf.label}
-                  </Link>
+              {(child.items ?? []).map((leaf, leafIndex) => (
+                <li key={`${leafIndex}-${leaf.label}`}>
+                  {leaf.href ? (
+                    <Link href={leaf.href} className={COLUMN_LINK_CLASSES}>
+                      {leaf.label}
+                    </Link>
+                  ) : (
+                    <span className={COLUMN_LABEL_CLASSES}>{leaf.label}</span>
+                  )}
                 </li>
               ))}
             </ul>

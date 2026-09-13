@@ -65,4 +65,11 @@ describe('MobileNavTree', () => {
 
     expect(await findAxeViolations(container)).toEqual([])
   })
+
+  test('an item with neither href nor sub-items renders as a plain label, not a link', () => {
+    render(<MobileNavTree items={[{ label: 'Resources' }]} />)
+
+    expect(screen.queryByRole('link', { name: 'Resources' })).toBeNull()
+    expect(screen.getByText('Resources')).toBeDefined()
+  })
 })

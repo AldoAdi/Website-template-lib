@@ -16,10 +16,13 @@ export interface SocialLinksProps {
   readonly items: readonly SocialLink[]
   /** Names the list. Defaults to `'Find us online'`. */
   readonly label?: string
+  /** Appended to each link's accessible name, since every link leaves the site. Defaults to `'(opens in new tab)'`. */
+  readonly newTabLabel?: string
   readonly className?: string
 }
 
 const LIST_CLASSES = 'flex flex-wrap items-center gap-3'
+const DEFAULT_NEW_TAB_LABEL = '(opens in new tab)'
 
 const LINK_CLASSES =
   'border-border text-muted-foreground hover:text-primary inline-flex size-9 items-center justify-center rounded-full border text-sm'
@@ -41,6 +44,7 @@ const LINK_CLASSES =
 export function SocialLinks({
   items,
   label = 'Find us online',
+  newTabLabel = DEFAULT_NEW_TAB_LABEL,
   className,
 }: SocialLinksProps): ReactElement {
   const classes = className ? `${LIST_CLASSES} ${className}` : LIST_CLASSES
@@ -52,6 +56,7 @@ export function SocialLinks({
           <a href={item.href} target="_blank" rel="noreferrer" className={LINK_CLASSES}>
             {item.icon ? <span aria-hidden="true">{item.icon}</span> : null}
             <span className={item.icon ? 'sr-only' : undefined}>{item.label}</span>
+            <span className="sr-only"> {newTabLabel}</span>
           </a>
         </li>
       ))}

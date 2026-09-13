@@ -34,7 +34,7 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps): ReactElemen
     <nav aria-label="Breadcrumb">
       <ol className={classes}>
         {items.map((item, index) => (
-          <li key={item.label} className="flex items-center gap-2">
+          <li key={`${index}-${item.label}`} className="flex items-center gap-2">
             {index > 0 ? (
               <span aria-hidden="true" className="opacity-60">
                 /

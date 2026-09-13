@@ -1,10 +1,27 @@
 'use client'
 
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import type { ReactElement } from 'react'
 import { denyConsent, grantConsent } from '../../analytics/consent'
 import { useConsentState } from '../../analytics/useConsentState'
 import { ConsentPreferences } from './ConsentPreferences'
+
+/**
+ * The banner unmounts the instant a decision is made. If focus was inside it
+ * at that moment (the visitor just activated Accept/Reject/Save), React
+ * drops focus to `<body>` rather than leaving it anywhere meaningful. Moving
+ * it to `<main>` first -- adding `tabindex="-1"` only if it has none -- gives
+ * a keyboard or screen-reader visitor somewhere sensible to land instead.
+ */
+function moveFocusToMainIfInside(banner: HTMLElement | null): void {
+  if (!banner?.contains(document.activeElement)) return
+
+  const main = document.querySelector<HTMLElement>('main')
+  if (!main) return
+
+  if (!main.hasAttribute('tabindex')) main.setAttribute('tabindex', '-1')
+  main.focus()
+}
 
 export interface CookieBannerProps {
   readonly message?: string
@@ -50,11 +67,27 @@ export function CookieBanner({
   const consentState = useConsentState()
   const [isPanelOpen, setIsPanelOpen] = useState(false)
   const panelId = useId()
+  const bannerRef = useRef<HTMLDivElement>(null)
 
   if (consentState !== 'unknown') return null
 
+  function handleReject(): void {
+    moveFocusToMainIfInside(bannerRef.current)
+    denyConsent()
+  }
+
+  function handleAccept(): void {
+    moveFocusToMainIfInside(bannerRef.current)
+    grantConsent()
+  }
+
+  function handlePreferencesSave(): void {
+    moveFocusToMainIfInside(bannerRef.current)
+  }
+
   return (
     <div
+      ref={bannerRef}
       role="region"
       aria-label="Cookie consent"
       className="gap-gutter px-gutter py-gutter border-border bg-background text-foreground fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] flex-col overflow-y-auto border-t shadow-lg sm:flex-row sm:items-center sm:justify-between"
@@ -67,7 +100,7 @@ export function CookieBanner({
             been allowed to read yet. */}
         {showPreferences && isPanelOpen ? (
           <div id={panelId} className="border-border rounded-md border p-4">
-            <ConsentPreferences />
+            <ConsentPreferences onSave={handlePreferencesSave} />
           </div>
         ) : null}
       </div>
@@ -88,14 +121,14 @@ export function CookieBanner({
             prominent button. */}
         <button
           type="button"
-          onClick={denyConsent}
+          onClick={handleReject}
           className={`${BUTTON_BASE_CLASSES} bg-secondary text-secondary-foreground`}
         >
           {rejectLabel}
         </button>
         <button
           type="button"
-          onClick={grantConsent}
+          onClick={handleAccept}
           className={`${BUTTON_BASE_CLASSES} bg-primary text-primary-foreground`}
         >
           {acceptLabel}

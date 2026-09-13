@@ -144,7 +144,7 @@ describe('ContactForm', () => {
     )
   })
 
-  test('disables the submit control while submitting', async () => {
+  test('marks the submit control aria-disabled while submitting, without dropping focus to body', async () => {
     let resolveFetch: (value: Response) => void = () => {}
     const fetchMock = vi.fn().mockImplementation(
       () =>
@@ -157,21 +157,45 @@ describe('ContactForm', () => {
 
     fillValidForm()
     setNow(PAST_DWELL_TIME)
-    submitForm()
+    const submitButton = screen.getByRole('button', { name: /send/i })
+    submitButton.focus()
+    fireEvent.click(submitButton)
 
-    await waitFor(() =>
-      expect((screen.getByRole('button', { name: /sending/i }) as HTMLButtonElement).disabled).toBe(
-        true,
-      ),
-    )
+    await waitFor(() => expect(submitButton.getAttribute('aria-disabled')).toBe('true'))
+    // A real `disabled` attribute would have forced focus to <body> the
+    // instant it was set; asserting focus stayed put is what proves
+    // aria-disabled (not disabled) is what's on the element.
+    expect(document.activeElement).toBe(submitButton)
 
     resolveFetch(jsonResponse({ success: true }))
 
-    await waitFor(() =>
-      expect((screen.getByRole('button', { name: /send/i }) as HTMLButtonElement).disabled).toBe(
-        false,
-      ),
+    await waitFor(() => expect(submitButton.getAttribute('aria-disabled')).toBe('false'))
+  })
+
+  test('a second submit while already submitting does not post twice', async () => {
+    let resolveFetch: (value: Response) => void = () => {}
+    const fetchMock = vi.fn().mockImplementation(
+      () =>
+        new Promise<Response>((resolve) => {
+          resolveFetch = resolve
+        }),
     )
+    vi.stubGlobal('fetch', fetchMock)
+    render(<ContactForm accessKey={ACCESS_KEY} />)
+
+    fillValidForm()
+    setNow(PAST_DWELL_TIME)
+    const submitButton = screen.getByRole('button', { name: /send/i })
+    fireEvent.click(submitButton)
+
+    await waitFor(() => expect(submitButton.getAttribute('aria-disabled')).toBe('true'))
+
+    fireEvent.click(submitButton)
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+
+    resolveFetch(jsonResponse({ success: true }))
+    await screen.findByText(/thanks/i)
   })
 
   test('has no axe violations in its default state', async () => {

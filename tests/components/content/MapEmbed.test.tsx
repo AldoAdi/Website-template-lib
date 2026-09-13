@@ -41,6 +41,14 @@ describe('MapEmbed', () => {
     expect(link.getAttribute('rel')).toBe('noreferrer')
   })
 
+  test('announces the new tab in the directions link, since it leaves the site', () => {
+    render(<MapEmbed {...PROPS} />)
+
+    expect(
+      screen.getByRole('link', { name: /open in maps.*opens in new tab/i }),
+    ).toBeDefined()
+  })
+
   test('loads the frame from inside the placeholder once consent is given there', () => {
     const { container } = render(<MapEmbed {...PROPS} />)
 
