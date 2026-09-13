@@ -4,10 +4,10 @@ import { ThemeProvider as NextThemesProvider } from 'next-themes'
 import { ThemeToggle } from '../../src/theme/ThemeToggle'
 import { mockMatchMedia } from './testHelpers'
 
-function renderToggle() {
+function renderToggle(className?: string) {
   return render(
     <NextThemesProvider attribute="class" defaultTheme="light" enableSystem>
-      <ThemeToggle />
+      <ThemeToggle className={className} />
     </NextThemesProvider>,
   )
 }
@@ -76,5 +76,12 @@ describe('ThemeToggle', () => {
 
     expect(button.getAttribute('aria-label')).toMatch(/light/i)
     expect(button.getAttribute('aria-label')).toMatch(/dark/i)
+  })
+
+  test('forwards a caller-supplied className to the button, so it stays stylable', () => {
+    renderToggle('text-sm font-medium hover:text-primary')
+    const button = screen.getByRole('button')
+
+    expect(button.className).toBe('text-sm font-medium hover:text-primary')
   })
 })

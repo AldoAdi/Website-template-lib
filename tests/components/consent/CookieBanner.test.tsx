@@ -89,6 +89,30 @@ describe('CookieBanner', () => {
 
     expect(container.innerHTML).not.toMatch(/#[0-9a-f]{3,8}\b/i)
   })
+
+  test('moves focus to <main> when focus was inside the banner at the moment of decision', () => {
+    render(
+      <>
+        <main>Page content</main>
+        <CookieBanner />
+      </>,
+    )
+
+    const acceptButton = screen.getByRole('button', { name: /accept/i })
+    acceptButton.focus()
+    fireEvent.click(acceptButton)
+
+    expect(document.activeElement).toBe(document.querySelector('main'))
+  })
+
+  test('leaves focus alone when there is no <main> to move it to', () => {
+    render(<CookieBanner />)
+
+    const rejectButton = screen.getByRole('button', { name: /reject/i })
+    rejectButton.focus()
+
+    expect(() => fireEvent.click(rejectButton)).not.toThrow()
+  })
 })
 
 describe('CookieBanner preferences panel', () => {
@@ -122,6 +146,17 @@ describe('CookieBanner preferences panel', () => {
     expect(document.getElementById(panelId)).not.toBeNull()
   })
 
+  test('aria-controls names a real element even while collapsed, not a missing id', () => {
+    render(<CookieBanner />)
+
+    const disclosure = screen.getByRole('button', { name: /manage preferences/i })
+    const panelId = disclosure.getAttribute('aria-controls') as string
+    const panel = document.getElementById(panelId)
+
+    expect(panel).not.toBeNull()
+    expect(panel?.hasAttribute('hidden')).toBe(true)
+  })
+
   test('saving a granular decision dismisses the banner', () => {
     render(<CookieBanner />)
 
@@ -144,5 +179,21 @@ describe('CookieBanner preferences panel', () => {
     fireEvent.click(screen.getByRole('button', { name: /manage preferences/i }))
 
     expect(await findAxeViolations(container)).toEqual([])
+  })
+
+  test('saving from the panel also moves focus to <main>', () => {
+    render(
+      <>
+        <main>Page content</main>
+        <CookieBanner />
+      </>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /manage preferences/i }))
+    const saveButton = screen.getByRole('button', { name: /save preferences/i })
+    saveButton.focus()
+    fireEvent.click(saveButton)
+
+    expect(document.activeElement).toBe(document.querySelector('main'))
   })
 })

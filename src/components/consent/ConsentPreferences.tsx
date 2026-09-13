@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import type { ReactElement } from 'react'
 import {
   CONSENT_CATEGORIES,
@@ -8,6 +8,23 @@ import {
   setConsentCategories,
 } from '../../analytics/consent'
 import type { ConsentCategories, ConsentCategory } from '../../analytics/consent'
+
+const subscribeToNothing = (): (() => void) => () => {}
+
+/**
+ * True once the panel has hydrated on the client -- same `useSyncExternalStore`
+ * trick as `ThemeToggle`'s `useIsMounted`, for the same reason: the server
+ * cannot read `localStorage`, so it cannot know a stored decision, so the
+ * server markup and the client's first paint must agree on *not* knowing it.
+ * The real values swap in a moment later, once mounted.
+ */
+function useIsMounted(): boolean {
+  return useSyncExternalStore(
+    subscribeToNothing,
+    () => true,
+    () => false,
+  )
+}
 
 export interface ConsentPreferencesProps {
   /** Per-category heading. Defaults are plain English; override to translate. */
@@ -40,6 +57,17 @@ const DEFAULT_DESCRIPTIONS: Record<ConsentCategory, string> = {
 
 const ROW_CLASSES = 'flex flex-col gap-1 border-border border-t py-3 first:border-t-0'
 
+// What the panel shows before it can read storage: everything optional off,
+// `functional` on -- the same answer `getConsentCategories()` gives for an
+// unknown decision. Used only for the server render and the client's first
+// paint, so the two agree and hydration does not report a mismatch.
+const SERVER_SAFE_CATEGORIES: ConsentCategories = {
+  functional: true,
+  preferences: false,
+  statistics: false,
+  marketing: false,
+}
+
 /**
  * The four-category consent panel.
  *
@@ -54,9 +82,19 @@ const ROW_CLASSES = 'flex flex-col gap-1 border-border border-t py-3 first:borde
  * still in the accessibility tree, so the row is announced along with its
  * "always active" note.
  *
- * State is seeded once from storage and then owned locally, so ticking a
- * box does not write anything -- nothing is persisted until Save. A panel
- * that applies each toggle immediately has no meaningful cancel.
+ * State is owned locally so ticking a box does not write anything -- nothing
+ * is persisted until Save. A panel that applies each toggle immediately has
+ * no meaningful cancel.
+ *
+ * It is seeded from storage rather than once at construction, though: the
+ * server cannot read storage at all, so a plain `useState(getConsentCategories)`
+ * bakes the server's empty answer into the client's state forever, and a
+ * visitor who already granted consent on a prior visit sees unchecked boxes
+ * until they touch one. `draft` stays `null` until the visitor edits a box;
+ * until then the checkboxes track `getConsentCategories()` live (gated by
+ * `isMounted`, so the client's first paint still matches the server's
+ * markup), and the moment they edit one, `draft` takes over and nothing --
+ * not a re-render, not a consent change fired elsewhere -- overwrites it.
  */
 export function ConsentPreferences({
   labels,
@@ -66,15 +104,19 @@ export function ConsentPreferences({
   onSave,
   className,
 }: ConsentPreferencesProps): ReactElement {
-  const [draft, setDraft] = useState<ConsentCategories>(getConsentCategories)
+  const isMounted = useIsMounted()
+  const [draft, setDraft] = useState<ConsentCategories | null>(null)
+
+  const stored = isMounted ? getConsentCategories() : SERVER_SAFE_CATEGORIES
+  const current = draft ?? stored
 
   function toggle(category: ConsentCategory, checked: boolean): void {
-    setDraft((current) => ({ ...current, [category]: checked }))
+    setDraft({ ...current, [category]: checked })
   }
 
   function save(): void {
-    setConsentCategories(draft)
-    onSave?.(draft)
+    setConsentCategories(current)
+    onSave?.(current)
   }
 
   return (
@@ -96,7 +138,7 @@ export function ConsentPreferences({
                 <input
                   type="checkbox"
                   className="accent-primary size-4 shrink-0"
-                  checked={draft[category]}
+                  checked={current[category]}
                   disabled={isLocked}
                   onChange={(event) => toggle(category, event.currentTarget.checked)}
                 />

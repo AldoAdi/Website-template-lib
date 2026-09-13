@@ -47,6 +47,16 @@ describe('CTA', () => {
     expect(container.innerHTML).not.toMatch(/#[0-9a-f]{3,8}\b/i)
   })
 
+  test('overrides descendant focus-visible outline color so it is visible on the primary band', () => {
+    const { container } = render(
+      <CTA heading="Ready to grow?" body="Get in touch this week." action={ACTION} />,
+    )
+
+    expect(container.firstElementChild?.className).toContain(
+      '[&_:focus-visible]:outline-primary-foreground',
+    )
+  })
+
   test('has no axe violations', async () => {
     render(
       <main>

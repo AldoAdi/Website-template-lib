@@ -1,3 +1,4 @@
+import { StrictMode } from 'react'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { act, cleanup, render, screen } from '@testing-library/react'
 import { denyConsent } from '../../src/analytics/consent'
@@ -155,6 +156,22 @@ describe('BookingRedirect', () => {
     rerender(<BookingRedirect providerUrl={PROVIDER} sinks={[sink]} />)
 
     expect(sink.events.filter((event) => event.step === 'booking_handoff')).toHaveLength(1)
+  })
+
+  test('still redirects under StrictMode, recording each step exactly once', () => {
+    const sink = createMemorySink()
+    render(
+      <StrictMode>
+        <BookingRedirect providerUrl={PROVIDER} sinks={[sink]} />
+      </StrictMode>,
+    )
+
+    act(() => {
+      vi.advanceTimersByTime(DEFAULT_REDIRECT_DELAY_MS)
+    })
+
+    expect(replace).toHaveBeenCalledTimes(1)
+    expect(sink.events.map((event) => event.step)).toEqual(['booking_view', 'booking_handoff'])
   })
 
   test('has no axe violations', async () => {

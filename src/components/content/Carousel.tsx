@@ -56,9 +56,12 @@ const EDGE_TOLERANCE_PX = 4
  *   `<li>` inside it. There is likewise no `aria-roledescription="carousel"`,
  *   because nothing here behaves like the ARIA carousel pattern and claiming
  *   the role without the rotation controls it implies helps nobody.
- * - The buttons are `aria-hidden` shortcuts, not the only way to move: a
- *   screen reader user tabs through the slides themselves.
- * - `scroll-smooth` is dropped under `motion-reduce`.
+ * - The buttons are labelled shortcuts, not the only way to move: a screen
+ *   reader user tabs through the slides themselves.
+ * - `scroll-smooth` is dropped under `motion-reduce` for native scrolling
+ *   (trackpad, touch, arrow keys). The buttons go through `scrollBy`'s own
+ *   `behavior` option instead, which overrides that CSS regardless -- so
+ *   `scrollByPage` checks `prefers-reduced-motion` itself.
  *
  * ponytail: no dots, no autoplay, no drag-with-momentum. Reviews are read,
  * not watched; add them if a slide ever needs to be found by index.
@@ -104,7 +107,8 @@ export function Carousel({
     const track = trackRef.current
     if (!track) return
 
-    track.scrollBy({ left: direction * track.clientWidth, behavior: 'smooth' })
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    track.scrollBy({ left: direction * track.clientWidth, behavior: reduced ? 'auto' : 'smooth' })
   }
 
   return (
@@ -117,7 +121,12 @@ export function Carousel({
         onScroll={syncEdges}
       >
         {items.map((item, index) => (
-          <li key={index} className={`shrink-0 snap-start ${BASIS_BY_VISIBLE[visible]}`}>
+          // `relative` gives absolutely positioned slide content (the
+          // `sr-only` rating in `Testimonial`) a containing block inside the
+          // track. Without it that content resolves against an ancestor
+          // outside the scroller, escapes its clipping, and widens the page
+          // into a sideways scroll.
+          <li key={index} className={`relative shrink-0 snap-start ${BASIS_BY_VISIBLE[visible]}`}>
             {item}
           </li>
         ))}

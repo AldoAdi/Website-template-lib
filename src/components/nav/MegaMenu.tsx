@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import type { ReactElement } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { hasSubItems } from './types'
 import type { NavItem } from './types'
 
@@ -14,10 +15,20 @@ export interface MegaMenuProps {
 const TRIGGER_CLASSES =
   'hover:text-primary inline-flex items-center gap-1 py-2 text-sm font-medium aria-expanded:text-primary'
 
-const PANEL_CLASSES =
-  'border-border bg-background absolute top-full left-0 z-50 mt-0 w-max max-w-[min(56rem,calc(100vw-2rem))] rounded-b-lg border border-t-0 p-6 shadow-lg'
+const PANEL_BASE_CLASSES =
+  'border-border bg-background absolute top-full z-50 mt-0 w-max max-w-[min(56rem,calc(100vw-2rem))] rounded-b-lg border border-t-0 p-6 shadow-lg'
+
+// Anchored from its trigger's left edge by default, which runs the panel
+// off the right edge of the viewport once the trigger itself is in the
+// right half of the bar. Right-anchoring those instead keeps every panel
+// on screen without needing to measure anything at runtime.
+const PANEL_LEFT_CLASSES = 'left-0'
+const PANEL_RIGHT_CLASSES = 'right-0 left-auto'
 
 const COLUMN_LINK_CLASSES = 'hover:text-primary block py-1 text-sm'
+// Same metrics as COLUMN_LINK_CLASSES, minus the hover affordance a
+// non-interactive label should not carry.
+const COLUMN_LABEL_CLASSES = 'block py-1 text-sm'
 
 /**
  * Desktop primary navigation with mega-menu panels.
@@ -34,6 +45,16 @@ const COLUMN_LINK_CLASSES = 'hover:text-primary block py-1 text-sm'
  * and it closes when focus or the pointer leaves the bar. Hover opens a
  * panel for mouse users but is never the only way in.
  *
+ * Hover and click share one trigger, so they have to agree rather than
+ * fight: a mouse click that lands right after a hover-open must not read as
+ * "close what I just opened", or a mouse user who clicks the item they are
+ * already pointing at can never get the panel open. `hoverOpenedRef` marks
+ * that the *next* click on this bar is that click -- it keeps the panel
+ * open (rather than toggling) once, then gets out of the way. A touch tap
+ * never sets it (`onPointerEnter` ignores non-mouse pointer types, and
+ * touch has no separate hover phase to fire it from anyway), so a tap
+ * always gets the plain open/close toggle.
+ *
  * Hidden below `md`; `MobileNavTree` is the small-screen counterpart.
  */
 export function MegaMenu({ items, className }: MegaMenuProps): ReactElement {
@@ -41,8 +62,30 @@ export function MegaMenu({ items, className }: MegaMenuProps): ReactElement {
   const baseId = useId()
   const barRef = useRef<HTMLUListElement>(null)
   const triggerRefs = useRef(new Map<string, HTMLButtonElement>())
+  const hoverOpenedRef = useRef(false)
 
-  const close = useCallback((): void => setOpenLabel(null), [])
+  const close = useCallback((): void => {
+    hoverOpenedRef.current = false
+    setOpenLabel(null)
+  }, [])
+
+  // Closes any open panel across a client-side navigation, which swaps the
+  // page under a persistent header without ever unmounting it. Adjusting
+  // state during render (rather than in an effect) is the pattern React's
+  // docs recommend for "reset state when a prop changes" -- it avoids the
+  // extra commit an effect-based reset would cost, and the repo's lint
+  // config flags a synchronous `setState` inside an effect regardless.
+  //
+  // `hoverOpenedRef` is left alone here: refs cannot be written during
+  // render (only state may), and there is nothing to fix -- the panel is
+  // closed either way afterward, so a stale `true` and a `false` drive the
+  // next click to the same open outcome.
+  const pathname = usePathname()
+  const [lastPathname, setLastPathname] = useState(pathname)
+  if (pathname !== lastPathname) {
+    setLastPathname(pathname)
+    setOpenLabel(null)
+  }
 
   useEffect(() => {
     if (openLabel === null) return undefined
@@ -66,6 +109,25 @@ export function MegaMenu({ items, className }: MegaMenuProps): ReactElement {
     trigger?.focus()
   }
 
+  function onTriggerPointerEnter(label: string, pointerType: string): void {
+    // Touch (and pen) delivers a pointerenter immediately before its click,
+    // with no separate hover dwell -- treating that as a hover-open would
+    // make the very first tap open-then-instantly-reopen instead of the
+    // plain toggle a tap expects.
+    if (pointerType !== 'mouse') return
+    hoverOpenedRef.current = true
+    setOpenLabel(label)
+  }
+
+  function onTriggerClick(label: string, isOpen: boolean): void {
+    if (hoverOpenedRef.current) {
+      hoverOpenedRef.current = false
+      setOpenLabel(label)
+      return
+    }
+    setOpenLabel(isOpen ? null : label)
+  }
+
   return (
     <ul
       ref={barRef}
@@ -82,19 +144,29 @@ export function MegaMenu({ items, className }: MegaMenuProps): ReactElement {
       {items.map((item, index) => {
         if (!hasSubItems(item)) {
           return (
-            <li key={item.label}>
-              <Link href={item.href ?? '#'} className="hover:text-primary py-2 text-sm font-medium">
-                {item.label}
-              </Link>
+            <li key={`${index}-${item.label}`}>
+              {item.href ? (
+                <Link href={item.href} className="hover:text-primary py-2 text-sm font-medium">
+                  {item.label}
+                </Link>
+              ) : (
+                <span className="py-2 text-sm font-medium">{item.label}</span>
+              )}
             </li>
           )
         }
 
         const panelId = `${baseId}-panel-${index}`
         const isOpen = openLabel === item.label
+        const isRightHalf = index >= items.length / 2
+        const panelClasses = `${PANEL_BASE_CLASSES} ${isRightHalf ? PANEL_RIGHT_CLASSES : PANEL_LEFT_CLASSES}`
 
         return (
-          <li key={item.label} className="relative" onMouseEnter={() => setOpenLabel(item.label)}>
+          <li
+            key={`${index}-${item.label}`}
+            className="relative"
+            onPointerEnter={(event) => onTriggerPointerEnter(item.label, event.pointerType)}
+          >
             <button
               type="button"
               ref={(node) => {
@@ -104,7 +176,7 @@ export function MegaMenu({ items, className }: MegaMenuProps): ReactElement {
               className={TRIGGER_CLASSES}
               aria-expanded={isOpen}
               aria-controls={panelId}
-              onClick={() => setOpenLabel(isOpen ? null : item.label)}
+              onClick={() => onTriggerClick(item.label, isOpen)}
             >
               {item.label}
               <span aria-hidden="true" className="text-xs">
@@ -113,7 +185,7 @@ export function MegaMenu({ items, className }: MegaMenuProps): ReactElement {
             </button>
 
             {isOpen ? (
-              <div id={panelId} className={PANEL_CLASSES}>
+              <div id={panelId} className={panelClasses}>
                 <MegaMenuPanel item={item} />
               </div>
             ) : null}
@@ -137,8 +209,8 @@ function MegaMenuPanel({ item }: { readonly item: NavItem }): ReactElement {
 
   return (
     <ul className="grid grid-cols-2 gap-x-8 gap-y-4 lg:grid-cols-3">
-      {subItems.map((child) => (
-        <li key={child.label}>
+      {subItems.map((child, index) => (
+        <li key={`${index}-${child.label}`}>
           {child.href ? (
             <Link
               href={child.href}
@@ -154,11 +226,15 @@ function MegaMenuPanel({ item }: { readonly item: NavItem }): ReactElement {
           ) : null}
           {hasSubItems(child) ? (
             <ul className="text-muted-foreground mt-2">
-              {(child.items ?? []).map((leaf) => (
-                <li key={leaf.label}>
-                  <Link href={leaf.href ?? '#'} className={COLUMN_LINK_CLASSES}>
-                    {leaf.label}
-                  </Link>
+              {(child.items ?? []).map((leaf, leafIndex) => (
+                <li key={`${leafIndex}-${leaf.label}`}>
+                  {leaf.href ? (
+                    <Link href={leaf.href} className={COLUMN_LINK_CLASSES}>
+                      {leaf.label}
+                    </Link>
+                  ) : (
+                    <span className={COLUMN_LABEL_CLASSES}>{leaf.label}</span>
+                  )}
                 </li>
               ))}
             </ul>

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from 'vitest'
+import { afterEach, describe, expect, test, vi } from 'vitest'
 import { cleanup, render, screen } from '@testing-library/react'
 import { HoursTable } from '../../../src/components/content/HoursTable'
 import { findAxeViolations } from '../../axeHelpers'
@@ -55,5 +55,21 @@ describe('HoursTable', () => {
     )
 
     expect(await findAxeViolations(document.body)).toEqual([])
+  })
+
+  test('duplicate day labels emit no React key warning', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const duplicateRows = [
+      { days: 'Monday', hours: '8:00am – 12:00pm' },
+      { days: 'Monday', hours: '1:00pm – 5:00pm' },
+    ]
+
+    render(<HoursTable rows={duplicateRows} />)
+
+    const keyWarning = consoleError.mock.calls.some((call) =>
+      String(call[0]).includes('unique "key" prop'),
+    )
+    expect(keyWarning).toBe(false)
+    consoleError.mockRestore()
   })
 })

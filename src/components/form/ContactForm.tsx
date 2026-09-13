@@ -2,11 +2,19 @@
 
 import { useEffect, useId, useRef, useState } from 'react'
 import type { FormEvent, ReactElement } from 'react'
+import { flushSync } from 'react-dom'
 import { Field } from './Field'
+import type { FieldElement } from './Field'
 import { useFormPost } from './useFormPost'
 import { validateContactSubmission } from '../../security/validate'
 import type { FieldErrors, RawContactSubmission } from '../../security/validate'
 import { isSpamSubmission } from '../../security/honeypot'
+
+type FieldName = keyof RawContactSubmission
+
+// Submit order, also the order a failed submit hunts for the first invalid
+// control to focus.
+const FIELD_ORDER: readonly FieldName[] = ['name', 'email', 'message']
 
 export interface ContactFormProps {
   /**
@@ -35,7 +43,7 @@ const EMPTY_SUBMISSION: RawContactSubmission = { name: '', email: '', message: '
 
 const FORM_CLASSES = 'flex flex-col gap-gutter'
 const SUBMIT_BUTTON_CLASSES =
-  'rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60'
+  'rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground aria-disabled:opacity-60'
 // Off-screen, out of tab order, and hidden from assistive tech -- a real
 // visitor never sees or reaches this field, only an automated filler would.
 const HONEYPOT_WRAPPER_CLASSES = 'absolute left-[-9999px] top-auto h-px w-px overflow-hidden'
@@ -61,7 +69,15 @@ export function ContactForm({
   const [values, setValues] = useState<RawContactSubmission>(EMPTY_SUBMISSION)
   const [honeypotValue, setHoneypotValue] = useState('')
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
+  // Which fields have been blurred (or submit-marked-all). Gates error
+  // display so leaving one field doesn't surface errors on the other two,
+  // which haven't been visited yet.
+  const [touchedFields, setTouchedFields] = useState<ReadonlySet<FieldName>>(new Set())
   const [silentSuccess, setSilentSuccess] = useState(false)
+  const nameRef = useRef<FieldElement>(null)
+  const emailRef = useRef<FieldElement>(null)
+  const messageRef = useRef<FieldElement>(null)
+  const fieldRefs = { name: nameRef, email: emailRef, message: messageRef } as const
   // Generated, not hardcoded: two ContactForms on one page would otherwise
   // emit duplicate ids and the second label would point at the first input.
   const honeypotId = useId()
@@ -87,16 +103,40 @@ export function ContactForm({
     setFieldErrors(result.success ? {} : result.errors)
   }
 
-  function handleBlur(): void {
+  function handleBlur(field: FieldName): void {
+    setTouchedFields((previous) => new Set(previous).add(field))
     revalidate(values)
+  }
+
+  /** Only touched fields show their error -- see `touchedFields` above. */
+  function displayedError(field: FieldName): string | undefined {
+    return touchedFields.has(field) ? fieldErrors[field]?.[0] : undefined
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault()
 
+    // The button stays a real `disabled=false` element while submitting (see
+    // SUBMIT_BUTTON_CLASSES) so focus is never dropped to <body>; this guard
+    // is what stops a second Enter/click from posting twice in its place.
+    if (isSubmitting) return
+
     const result = validateContactSubmission(values)
     if (!result.success) {
-      setFieldErrors(result.errors)
+      // Committed synchronously so `aria-describedby` is already on the
+      // control when focus lands below -- otherwise the screen reader
+      // announces the field before its error exists.
+      flushSync(() => {
+        setFieldErrors(result.errors)
+        setTouchedFields(new Set(FIELD_ORDER))
+      })
+      // Move focus to the first invalid control, in field order: that
+      // announces its error via aria-describedby without needing a
+      // role="alert" on every field at once.
+      const firstInvalidField = FIELD_ORDER.find((field) => result.errors[field])
+      if (firstInvalidField) {
+        fieldRefs[firstInvalidField].current?.focus()
+      }
       return
     }
     setFieldErrors({})
@@ -136,33 +176,36 @@ export function ContactForm({
   return (
     <form className={formClasses} onSubmit={handleSubmit} noValidate>
       <Field
+        ref={nameRef}
         label="Name"
         name="name"
         value={values.name}
         onChange={(value) => updateField('name', value)}
-        onBlur={handleBlur}
-        error={fieldErrors.name?.[0]}
+        onBlur={() => handleBlur('name')}
+        error={displayedError('name')}
         autoComplete="name"
         required
       />
       <Field
+        ref={emailRef}
         label="Email"
         name="email"
         type="email"
         value={values.email}
         onChange={(value) => updateField('email', value)}
-        onBlur={handleBlur}
-        error={fieldErrors.email?.[0]}
+        onBlur={() => handleBlur('email')}
+        error={displayedError('email')}
         autoComplete="email"
         required
       />
       <Field
+        ref={messageRef}
         label="Message"
         name="message"
         value={values.message}
         onChange={(value) => updateField('message', value)}
-        onBlur={handleBlur}
-        error={fieldErrors.message?.[0]}
+        onBlur={() => handleBlur('message')}
+        error={displayedError('message')}
         multiline
         required
       />
@@ -178,7 +221,7 @@ export function ContactForm({
           onChange={(event) => setHoneypotValue(event.target.value)}
         />
       </div>
-      <button type="submit" disabled={isSubmitting} className={SUBMIT_BUTTON_CLASSES}>
+      <button type="submit" aria-disabled={isSubmitting} className={SUBMIT_BUTTON_CLASSES}>
         {isSubmitting ? 'Sending…' : submitLabel}
       </button>
       <p role="status" aria-live="polite" className="text-sm">

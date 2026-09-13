@@ -25,6 +25,11 @@ function nextTheme(current: CycleTheme): CycleTheme {
 
 const subscribeToNothing = (): (() => void) => () => {}
 
+export interface ThemeToggleProps {
+  /** Forwarded to the underlying button; the component ships with no default styling of its own. */
+  readonly className?: string
+}
+
 /**
  * True once the component has hydrated on the client, false during server
  * rendering and the client's first render pass. Implemented with
@@ -53,7 +58,7 @@ function useIsMounted(): boolean {
  * client's first paint both render the same "system" fallback; the real
  * label swaps in a moment later, once mounted.
  */
-export function ThemeToggle(): ReactElement {
+export function ThemeToggle({ className }: ThemeToggleProps): ReactElement {
   const { theme, setTheme } = useTheme()
   const isMounted = useIsMounted()
 
@@ -65,6 +70,7 @@ export function ThemeToggle(): ReactElement {
       type="button"
       onClick={() => setTheme(upcoming)}
       aria-label={`Theme: ${THEME_LABELS[current]}. Activate to switch to ${THEME_LABELS[upcoming]} theme.`}
+      className={className}
     >
       {THEME_LABELS[current]}
     </button>
