@@ -9,7 +9,7 @@ export interface MobileNavTreeProps {
 }
 
 const SUMMARY_CLASSES =
-  'flex cursor-pointer list-none items-center justify-between py-2 text-sm font-medium marker:content-none [&::-webkit-details-marker]:display-none'
+  'flex cursor-pointer list-none items-center justify-between py-2 text-sm font-medium marker:content-none [&::-webkit-details-marker]:hidden'
 
 const LEAF_CLASSES = 'hover:text-primary block py-2 text-sm'
 // Same metrics as LEAF_CLASSES, minus the hover affordance a non-interactive

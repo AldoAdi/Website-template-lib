@@ -146,10 +146,7 @@ export function MegaMenu({ items, className }: MegaMenuProps): ReactElement {
           return (
             <li key={`${index}-${item.label}`}>
               {item.href ? (
-                <Link
-                  href={item.href}
-                  className="hover:text-primary py-2 text-sm font-medium"
-                >
+                <Link href={item.href} className="hover:text-primary py-2 text-sm font-medium">
                   {item.label}
                 </Link>
               ) : (

@@ -72,4 +72,12 @@ describe('MobileNavTree', () => {
     expect(screen.queryByRole('link', { name: 'Resources' })).toBeNull()
     expect(screen.getByText('Resources')).toBeDefined()
   })
+
+  test('hides the WebKit details marker with a real Tailwind utility, not the invalid "display-none"', () => {
+    const { container } = render(<MobileNavTree items={ITEMS} />)
+
+    const summaryClasses = container.querySelector('summary')?.className ?? ''
+    expect(summaryClasses).toContain('[&::-webkit-details-marker]:hidden')
+    expect(summaryClasses).not.toContain('display-none')
+  })
 })

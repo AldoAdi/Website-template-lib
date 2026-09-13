@@ -1,7 +1,9 @@
 'use client'
 
 import { useId } from 'react'
-import type { ChangeEvent, ReactElement } from 'react'
+import type { ChangeEvent, ReactElement, Ref } from 'react'
+
+export type FieldElement = HTMLInputElement | HTMLTextAreaElement
 
 export interface FieldProps {
   readonly label: string
@@ -15,6 +17,8 @@ export interface FieldProps {
   readonly multiline?: boolean
   readonly required?: boolean
   readonly autoComplete?: string
+  /** React 19 accepts `ref` as a plain prop -- no `forwardRef` needed. Lets a failed submit move focus to the first invalid control. */
+  readonly ref?: Ref<FieldElement>
 }
 
 const FIELD_CLASSES =
@@ -40,6 +44,7 @@ export function Field({
   multiline = false,
   required = false,
   autoComplete,
+  ref,
 }: FieldProps): ReactElement {
   const id = useId()
   const errorId = `${id}-error`
@@ -54,9 +59,17 @@ export function Field({
     <div className="flex flex-col gap-1">
       <label htmlFor={id} className={LABEL_CLASSES}>
         {label}
+        {/* `required` on the control already conveys this to assistive tech; the asterisk is for sighted users scanning the form. */}
+        {required ? (
+          <span aria-hidden="true" className="text-destructive">
+            {' '}
+            *
+          </span>
+        ) : null}
       </label>
       {multiline ? (
         <textarea
+          ref={ref as Ref<HTMLTextAreaElement>}
           id={id}
           name={name}
           value={value}
@@ -71,6 +84,7 @@ export function Field({
         />
       ) : (
         <input
+          ref={ref as Ref<HTMLInputElement>}
           id={id}
           name={name}
           type={type}
@@ -84,8 +98,12 @@ export function Field({
           className={FIELD_CLASSES}
         />
       )}
+      {/* No `role="alert"`: ContactForm renders up to three Fields at once, and
+          three simultaneous alerts on submit talk over each other. Failed
+          submit instead moves focus to the first invalid control, which
+          announces this text via aria-describedby. */}
       {hasError ? (
-        <p id={errorId} role="alert" className={ERROR_CLASSES}>
+        <p id={errorId} className={ERROR_CLASSES}>
           {error}
         </p>
       ) : null}

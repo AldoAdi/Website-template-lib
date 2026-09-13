@@ -97,9 +97,15 @@ export function CookieBanner({
         {/* The panel lives inside the same region rather than in a modal
             dialog: the banner is already the topmost thing on the page, and
             a dialog here would trap focus over content the visitor has not
-            been allowed to read yet. */}
-        {showPreferences && isPanelOpen ? (
-          <div id={panelId} className="border-border rounded-md border p-4">
+            been allowed to read yet.
+
+            Always rendered (collapsed via the `hidden` attribute, not
+            conditional rendering) so the toggle button's `aria-controls`
+            always names a real element -- see Header's mobile panel for the
+            same pattern. `ConsentPreferences` mounting while hidden is fine:
+            it only reads current consent for its initial state. */}
+        {showPreferences ? (
+          <div id={panelId} hidden={!isPanelOpen} className="border-border rounded-md border p-4">
             <ConsentPreferences onSave={handlePreferencesSave} />
           </div>
         ) : null}
