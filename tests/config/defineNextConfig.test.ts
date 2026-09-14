@@ -45,6 +45,17 @@ describe('defineNextConfig', () => {
     expect(cspHeader?.value).toContain("default-src 'self'")
   })
 
+  test('threads caller-supplied frame origins into the vercel CSP', async () => {
+    const config = defineNextConfig({ target: 'vercel', frameSrc: ['https://embed.example'] })
+
+    const headerEntries = await config.headers?.()
+    const cspHeader = headerEntries
+      ?.flatMap((entry) => entry.headers)
+      .find((header) => header.key === 'Content-Security-Policy')
+
+    expect(cspHeader?.value).toMatch(/frame-src [^;]*https:\/\/embed\.example/)
+  })
+
   test('does not carry an HTTP headers() function for the github-pages target', () => {
     // A static export has no server to run headers() against -- Next
     // would silently ignore it, so `defineNextConfig` must not emit one.

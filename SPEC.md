@@ -472,7 +472,11 @@ flashes, and does nothing at all under `prefers-reduced-motion`.
 **`MapEmbed` is consent-gated and still gives directions.** Until the required
 category is granted it renders a placeholder with a plain link to the map
 provider — never a blank box. Directions must not be reachable only by
-accepting tracking.
+accepting tracking. The link stays under the loaded frame too, because a
+cross-origin frame never reports a load failure. The default CSP allows
+`frame-src https://www.google.com` for it; other embeds use `frameSrc`. A
+non-https `embedUrl` is never framed, and a non-`/maps/embed` Google URL
+warns in development.
 
 **Consent gained categories without gaining a second source of truth.** The
 overall `ConsentState` now tracks the `statistics` category and nothing else, so

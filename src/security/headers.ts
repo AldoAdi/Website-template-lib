@@ -115,6 +115,14 @@
  *    next-themes assigns `documentElement.style.colorScheme` at runtime,
  *    which a bare `style-src 'self'` blocks. This was caught by loading the
  *    built page in a browser; reading the static output cannot reveal it.
+ *  - `frame-src 'self' https://www.google.com` — `MapEmbed`'s Google Maps
+ *    iframe (`www.google.com/maps/embed`). Without this directive frames
+ *    fall back to `default-src 'self'` and the map is refused on every site
+ *    built on this library ("www.google.com refused to connect").
+ *    `options.frameSrc` adds other embeds (YouTube, a scheduler widget).
+ *  - `form-action 'self'` — an injected `<form>` cannot post visitor input
+ *    to another origin. `ContactForm` submits via `fetch`, which
+ *    `connect-src` governs instead, so this costs nothing.
  *  - `font-src 'self'` — for a consumer's self-hosted font files, if any.
  *  - `base-uri 'self'` — blocks `<base>`-tag injection from redirecting
  *    every relative URL on the page.
@@ -141,6 +149,8 @@ const GOOGLE_ADS_COLLECT_ORIGIN = 'https://www.google.com'
 // Google signals' own collection host.
 const DOUBLECLICK_STATS_ORIGIN = 'https://stats.g.doubleclick.net'
 const WEB3FORMS_ORIGIN = 'https://api.web3forms.com'
+// `MapEmbed`'s iframe: Google serves `/maps/embed` from www.google.com.
+const GOOGLE_MAPS_EMBED_ORIGIN = 'https://www.google.com'
 
 const HSTS_MAX_AGE_SECONDS = 63_072_000 // two years, the value securityheaders.com expects for full credit
 
@@ -191,6 +201,11 @@ export interface SecurityHeaderOptions {
    * Meta) load this way.
    */
   readonly imgSrc?: readonly string[]
+  /**
+   * Extra origins appended to `frame-src`. Google Maps (for `MapEmbed`) is
+   * already allowed; other embeds -- YouTube, a booking widget -- go here.
+   */
+  readonly frameSrc?: readonly string[]
 }
 
 /**
@@ -248,11 +263,16 @@ function buildBaseCspDirectives(options: SecurityHeaderOptions = {}): readonly s
     ...normalizeOrigins(options.imgSrc),
   ].join(' ')
 
+  const frameSrc = ["'self'", GOOGLE_MAPS_EMBED_ORIGIN, ...normalizeOrigins(options.frameSrc)].join(
+    ' ',
+  )
+
   return [
     "default-src 'self'",
     `script-src ${scriptSrc}`,
     `connect-src ${connectSrc}`,
     `img-src ${imgSrc}`,
+    `frame-src ${frameSrc}`,
     // 'unsafe-inline' is required here for the same structural reason as
     // script-src, and it was found by loading the built page in a real
     // browser -- not by reading the emitted HTML, which contains no <style>
@@ -267,6 +287,7 @@ function buildBaseCspDirectives(options: SecurityHeaderOptions = {}): readonly s
     // scrollbars in the wrong colour scheme in dark mode.
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
+    "form-action 'self'",
     "base-uri 'self'",
     "object-src 'none'",
   ]

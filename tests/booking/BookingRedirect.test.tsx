@@ -111,6 +111,27 @@ describe('BookingRedirect', () => {
     expect(replace).toHaveBeenCalledTimes(1)
   })
 
+  test('refuses to navigate to a non-web scheme, even from a misconfigured provider url', () => {
+    render(<BookingRedirect providerUrl="javascript:alert(1)" sinks={[]} />)
+
+    act(() => {
+      vi.advanceTimersByTime(DEFAULT_REDIRECT_DELAY_MS)
+    })
+
+    expect(replace).not.toHaveBeenCalled()
+    expect(screen.queryByRole('link', { name: /continue to booking/i })).toBeNull()
+  })
+
+  test('still follows a relative provider url, which resolves to this site', () => {
+    render(<BookingRedirect providerUrl="/book/fallback" sinks={[]} />)
+
+    act(() => {
+      vi.advanceTimersByTime(DEFAULT_REDIRECT_DELAY_MS)
+    })
+
+    expect(replace).toHaveBeenCalledWith('/book/fallback')
+  })
+
   test('renders a continue link that works without javascript', () => {
     render(<BookingRedirect providerUrl={PROVIDER} sinks={[]} />)
 

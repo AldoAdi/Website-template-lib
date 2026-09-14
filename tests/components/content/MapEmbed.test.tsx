@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { cleanup, render, screen, fireEvent, act } from '@testing-library/react'
 import { MapEmbed } from '../../../src/components/content/MapEmbed'
 import {
@@ -20,6 +20,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  vi.restoreAllMocks()
   cleanup()
   resetConsent()
   window.localStorage.clear()
@@ -44,9 +45,7 @@ describe('MapEmbed', () => {
   test('announces the new tab in the directions link, since it leaves the site', () => {
     render(<MapEmbed {...PROPS} />)
 
-    expect(
-      screen.getByRole('link', { name: /open in maps.*opens in new tab/i }),
-    ).toBeDefined()
+    expect(screen.getByRole('link', { name: /open in maps.*opens in new tab/i })).toBeDefined()
   })
 
   test('loads the frame from inside the placeholder once consent is given there', () => {
@@ -114,6 +113,59 @@ describe('MapEmbed', () => {
       expect.objectContaining({ preferences: true, statistics: false, marketing: false }),
     )
     expect(screen.getByTitle(PROPS.title)).toBeDefined()
+  })
+
+  // A cross-origin frame reports no load error to the page, so the only
+  // reliable recovery from a blocked map is a link that never goes away.
+  test('keeps the directions link next to the loaded frame', () => {
+    render(<MapEmbed {...PROPS} requireConsentFor={null} />)
+
+    const link = screen.getByRole('link', { name: /open in maps.*opens in new tab/i })
+    expect(link.getAttribute('href')).toBe(PROPS.linkUrl)
+  })
+
+  test.each([
+    'javascript:alert(1)',
+    'data:text/html,<script>alert(1)</script>',
+    'http://www.google.com/maps/embed?pb=x',
+    'not a url',
+  ])('never frames a non-https embed url (%s)', (embedUrl) => {
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const { container } = render(
+      <MapEmbed {...PROPS} embedUrl={embedUrl} requireConsentFor={null} />,
+    )
+
+    expect(container.querySelector('iframe')).toBeNull()
+    expect(screen.queryByRole('button', { name: /allow and show map/i })).toBeNull()
+    expect(screen.getByRole('link', { name: /open in maps/i })).toBeDefined()
+  })
+
+  test('omits the directions link when it is not an http(s) url', () => {
+    render(<MapEmbed {...PROPS} linkUrl="javascript:alert(1)" />)
+
+    expect(screen.queryByRole('link')).toBeNull()
+  })
+
+  test('warns in development when given an ordinary Google Maps link, which Google refuses to frame', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+
+    render(
+      <MapEmbed
+        {...PROPS}
+        embedUrl="https://www.google.com/maps/place/Some+Clinic"
+        requireConsentFor={null}
+      />,
+    )
+
+    expect(warn).toHaveBeenCalledWith(expect.stringMatching(/maps\/embed/))
+  })
+
+  test('does not warn for a proper embed url', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+
+    render(<MapEmbed {...PROPS} requireConsentFor={null} />)
+
+    expect(warn).not.toHaveBeenCalled()
   })
 
   // Only the placeholder is checked with axe: axe-core refuses to scan a
