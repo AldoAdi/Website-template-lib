@@ -14,6 +14,8 @@ export interface DefineNextConfigOptions {
   readonly scriptSrc?: readonly string[]
   /** Extra origins for the CSP `img-src` allowlist -- conversion pixels need these. */
   readonly imgSrc?: readonly string[]
+  /** Extra origins for the CSP `frame-src` allowlist -- Google Maps is already allowed. */
+  readonly frameSrc?: readonly string[]
 }
 
 const GITHUB_PAGES_TRAILING_SLASH = true
@@ -33,6 +35,7 @@ export function defineNextConfig(options: DefineNextConfigOptions): NextConfig {
     ...(options.connectSrc === undefined ? {} : { connectSrc: options.connectSrc }),
     ...(options.scriptSrc === undefined ? {} : { scriptSrc: options.scriptSrc }),
     ...(options.imgSrc === undefined ? {} : { imgSrc: options.imgSrc }),
+    ...(options.frameSrc === undefined ? {} : { frameSrc: options.frameSrc }),
   })
 }
 

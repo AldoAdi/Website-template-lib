@@ -312,3 +312,48 @@ describe('the library allowlists its own integrations everywhere they reach', ()
     expect(directive(meta?.content ?? '', 'img-src')).toContain(GTM)
   })
 })
+
+describe('frame-src and form-action', () => {
+  function directive(csp: string, name: string): string {
+    return csp.split('; ').find((d) => d.startsWith(`${name} `)) ?? ''
+  }
+
+  function httpCsp(options?: Parameters<typeof getHttpSecurityHeaders>[0]): string {
+    return (
+      getHttpSecurityHeaders(options).find((h) => h.key === 'Content-Security-Policy')?.value ?? ''
+    )
+  }
+
+  function metaCsp(options?: Parameters<typeof getMetaSecurityTags>[0]): string {
+    return getMetaSecurityTags(options)[0]?.content ?? ''
+  }
+
+  // Without frame-src, default-src 'self' governs frames, and MapEmbed's
+  // Google iframe is refused on every site built on this library.
+  test('allows the Google Maps embed frame in both shapes', () => {
+    expect(directive(httpCsp(), 'frame-src')).toContain('https://www.google.com')
+    expect(directive(metaCsp(), 'frame-src')).toContain('https://www.google.com')
+  })
+
+  test('appends caller-supplied frame origins', () => {
+    const frameSrc = directive(
+      httpCsp({ frameSrc: ['https://www.youtube-nocookie.com'] }),
+      'frame-src',
+    )
+
+    expect(frameSrc).toContain('https://www.youtube-nocookie.com')
+    expect(frameSrc).toContain('https://www.google.com')
+  })
+
+  test('drops a forged directive smuggled through frameSrc', () => {
+    const csp = httpCsp({ frameSrc: ['https://evil.example; script-src *'] })
+
+    expect(csp).not.toContain('evil.example')
+    expect(csp).not.toContain('script-src *')
+  })
+
+  test('restricts form submissions to the site itself in both shapes', () => {
+    expect(httpCsp()).toContain("form-action 'self'")
+    expect(metaCsp()).toContain("form-action 'self'")
+  })
+})

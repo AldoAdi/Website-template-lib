@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, type ReactElement, type ReactNode } from 'react'
+import { parseWebUrl } from '../security/url'
 import { buildBookingUrl } from './buildBookingUrl'
 import { getAttribution } from './attribution'
 import { getBookingSinks } from './config'
@@ -101,7 +102,8 @@ export function BookingRedirect({
     }
 
     const url = urlRef.current
-    if (url === null) return undefined
+    // A misconfigured provider url must never become a `javascript:` navigation.
+    if (url === null || parseWebUrl(url) === null) return undefined
 
     // `replace`, not `assign`: the interstitial must not sit in history, or
     // Back from the scheduler bounces the visitor straight into it again.
@@ -115,6 +117,8 @@ export function BookingRedirect({
   }, [providerUrl, activeSinks, forwardUtm, redirectDelayMs])
 
   const classes = className ? `${WRAPPER_CLASSES} ${className}` : WRAPPER_CLASSES
+  const linkHref = destination ?? providerUrl
+  const isLinkSafe = parseWebUrl(linkHref) !== null
 
   return (
     <div className={classes}>
@@ -127,9 +131,11 @@ export function BookingRedirect({
 
       {/* Also the no-JS path: without scripts the effect never runs, and
           this stays the only way through. */}
-      <a href={destination ?? providerUrl} className={LINK_CLASSES}>
-        Continue to booking
-      </a>
+      {isLinkSafe ? (
+        <a href={linkHref} className={LINK_CLASSES}>
+          Continue to booking
+        </a>
+      ) : null}
 
       {fallback}
     </div>
